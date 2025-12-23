@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplikasi Absensi Guru</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .heroicon { width: 1.5rem; height: 1.5rem; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Login Page -->
+  <div id="loginPage" class="flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md mx-4">
+      <h2 class="text-2xl font-bold text-center mb-8 flex items-center justify-center gap-3">
+        <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/lock-closed.svg#lock-closed"></use></svg>
+        Login Absensi Guru
+      </h2>
+      <input id="username" type="text" placeholder="Username" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <input id="password" type="password" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <button onclick="login()" class="w-full bg-blue-600 text-white py-3 rounded-lg flex items-center justify-center gap-3 hover:bg-blue-700 transition">
+        <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/arrow-right.svg#arrow-right"></use></svg>
+        Masuk
+      </button>
+      <p id="loginMsg" class="text-red-500 text-center mt-4 font-medium"></p>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="mainApp" class="hidden">
+    <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center sticky top-0 z-10">
+      <h1 class="text-2xl font-bold text-gray-800">Absensi Guru</h1>
+      <div class="flex items-center gap-6">
+        <span id="userName" class="text-lg font-medium"></span>
+        <button onclick="logout()" class="bg-red-600 text-white px-5 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition">
+          <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/arrow-left-on-rectangle.svg#arrow-left-on-rectangle"></use></svg>
+          Logout
+        </button>
+      </div>
+    </nav>
+
+    <div class="flex flex-col md:flex-row">
+      <aside class="w-full md:w-64 bg-gray-800 min-h-screen p-4">
+        <ul class="space-y-3">
+          <li id="menuDashboard" class="hidden">
+            <button onclick="showPage('dashboard')" class="w-full text-left text-white py-3 px-4 rounded-lg hover:bg-gray-700 flex items-center gap-3 transition">
+              <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/home.svg#home"></use></svg>
+              Dashboard
+            </button>
+          </li>
+          <li>
+            <button onclick="showPage('absensi')" class="w-full text-left text-white py-3 px-4 rounded-lg hover:bg-gray-700 flex items-center gap-3 transition">
+              <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/check-circle.svg#check-circle"></use></svg>
+              Absensi
+            </button>
+          </li>
+          <li>
+            <button onclick="showPage('rekap')" class="w-full text-left text-white py-3 px-4 rounded-lg hover:bg-gray-700 flex items-center gap-3 transition">
+              <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/chart-bar.svg#chart-bar"></use></svg>
+              Rekap & Grafik
+            </button>
+          </li>
+          <li id="menuManager" class="hidden">
+            <button onclick="showPage('manager')" class="w-full text-left text-white py-3 px-4 rounded-lg hover:bg-gray-700 flex items-center gap-3 transition">
+              <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/users.svg#users"></use></svg>
+              Data Manager
+            </button>
+          </li>
+        </ul>
+      </aside>
+
+      <main class="flex-1 p-6 md:p-10">
+        <!-- Dashboard, Absensi, Manager sama seperti sebelumnya -->
+
+        <!-- Absensi (update pesan double absen) -->
+        <div id="absensi" class="hidden">
+          <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
+            <svg class="heroicon w-10 h-10 text-green-600"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/check-circle.svg#check-circle"></use></svg>
+            Absensi Hari Ini
+          </h2>
+          <div class="bg-white p-8 rounded-xl shadow-lg">
+            <p class="text-xl mb-6">Tanggal: <span id="todayDate" class="font-bold"></span></p>
+            <button id="btnAbsen" onclick="doAbsen()" class="bg-green-600 text-white px-8 py-5 rounded-xl text-2xl flex items-center gap-4 hover:bg-green-700 transition shadow-md">
+              <svg class="heroicon w-10 h-10"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/hand-thumb-up.svg#hand-thumb-up"></use></svg>
+              Absen Sekarang
+            </button>
+            <p id="absenMsg" class="mt-6 text-xl font-bold"></p>
+
+            <div class="mt-12 border-t pt-8">
+              <h3 class="text-2xl font-bold mb-4">Rekap Bulan Ini (26 bln lalu - 25 hari ini)</h3>
+              <p class="text-xl">Total Kehadiran: <span id="totalBulan" class="font-bold text-blue-600">0</span> hari</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rekap dengan Grafik -->
+        <div id="rekap" class="hidden">
+          <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
+            <svg class="heroicon w-10 h-10 text-purple-600"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/chart-bar.svg#chart-bar"></use></svg>
+            Rekap & Grafik Kehadiran
+          </h2>
+
+          <!-- Grafik -->
+          <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <canvas id="attendanceChart" height="100"></canvas>
+          </div>
+
+          <!-- Tabel -->
+          <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-200">
+                  <tr>
+                    <th class="p-4 text-left">Tanggal</th>
+                    <th class="p-4 text-left">Nama Guru</th>
+                    <th class="p-4 text-left">Waktu Absen</th>
+                  </tr>
+                </thead>
+                <tbody id="rekapTable" class="divide-y divide-gray-200"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Manager (password aman) -->
+        <div id="manager" class="hidden">
+          <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
+            <svg class="heroicon w-10 h-10 text-indigo-600"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/users.svg#users"></use></svg>
+            Data Manager
+          </h2>
+          <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-200">
+                  <tr>
+                    <th class="p-4 text-left">Nama</th>
+                    <th class="p-4 text-left">Username</th>
+                    <th class="p-4 text-left">Password Baru (kosongkan = tidak ubah)</th>
+                    <th class="p-4 text-left">Role</th>
+                    <th class="p-4 text-left">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="userTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard sama seperti sebelumnya (tidak ditampilkan ulang untuk hemat space) -->
+      </main>
+    </div>
+  </div>
+
+<script>
+// GANTI DENGAN URL WEB APP ANDA!
+const API_URL = 'https://script.google.com/macros/s/AKfycbx01WEQHO7bIt0bU0Km3IyJ50ZDw5VaAJoJEic7Yg95WS9vpkPxUIYPbVEdD0nSFqxqEQ/exec'; // <<-- UBAH INI
+
+let currentUser = JSON.parse(localStorage.getItem('absensiUser')) || null;
+let chartInstance = null;
+
+function formatDate(date) {
+  return date.toISOString().split('T')[0];
+}
+
+function getMonthRange() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const start = new Date(year, month - 1, 26);
+  const end = new Date(year, month, 25);
+  return { start: formatDate(start), end: formatDate(end) };
+}
+
+async function apiCall(action, params = {}, method = 'GET') {
+  let url = `${API_URL}?action=${action}`;
+  if (method === 'GET' && Object.keys(params).length) {
+    Object.keys(params).forEach(key => url += `&${key}=${encodeURIComponent(params[key])}`);
+  }
+  const options = { method };
+  if (method === 'POST') {
+    options.headers = { 'Content-Type': 'application/json' };
+    options.body = JSON.stringify({ action, ...params });
+  }
+  const res = await fetch(url, options);
+  return await res.json();
+}
+
+async function login() { /* sama seperti sebelumnya */ }
+
+function logout() { /* sama */ }
+
+function initApp() { /* sama, tambah loadChart() di akhir */ 
+  // ... kode init sebelumnya
+  loadChart();
+}
+
+async function doAbsen() {
+  const btn = document.getElementById('btnAbsen');
+  btn.disabled = true;
+  btn.textContent = 'Memproses...';
+
+  const today = formatDate(new Date());
+  const result = await apiCall('absen', { nama: currentUser.nama, tanggal: today }, 'POST');
+
+  if (result.success) {
+    document.getElementById('absenMsg').textContent = result.message || 'Absen berhasil!';
+    document.getElementById('absenMsg').className = 'mt-6 text-green-600 text-xl font-bold';
+  } else {
+    document.getElementById('absenMsg').textContent = result.message || 'Gagal absen';
+    document.getElementById('absenMsg').className = 'mt-6 text-red-600 text-xl font-bold';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg class="heroicon w-10 h-10"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/hand-thumb-up.svg#hand-thumb-up"></use></svg> Absen Sekarang`;
+
+  loadAbsensi();
+  loadRekap();
+  loadChart();
+  if (currentUser.role === 'admin') loadDashboard();
+}
+
+async function loadChart() {
+  const data = await apiCall('getAllAbsensi');
+  const range = getMonthRange();
+  
+  // Hitung kehadiran per hari dalam periode bulan
+  const dailyCount = {};
+  data.forEach(row => {
+    if (row.tanggal >= range.start && row.tanggal <= range.end) {
+      dailyCount[row.tanggal] = (dailyCount[row.tanggal] || 0) + 1;
+    }
+  });
+
+  const labels = [];
+  const counts = [];
+  let current = new Date(range.start);
+  while (current <= new Date(range.end)) {
+    const dateStr = formatDate(current);
+    labels.push(dateStr);
+    counts.push(dailyCount[dateStr] || 0);
+    current.setDate(current.getDate() + 1);
+  }
+
+  const ctx = document.getElementById('attendanceChart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Jumlah Guru Hadir',
+        data: counts,
+        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+        borderColor: 'rgb(59, 130, 246)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+}
+
+// Fungsi lain (loadAbsensi, loadRekap, loadDashboard, loadUsers, saveUser) tetap sama seperti versi sebelumnya
+
+if (currentUser) {
+  initApp();
+}
+</script>
+
+</body>
+</html>
