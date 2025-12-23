@@ -226,7 +226,7 @@
           <p id="currentTime" class="text-slate-500 mt-2"></p>
         </div>
         <div class="glass-card max-w-3xl mx-auto p-12 text-center">
-          <button id="btnAbsen" onclick="doAbsen()" class="btn-primary text-white px-20 py-16 rounded-3xl text-3xl font-bold shadow-2xl flex flex-col items-center gap-6 mx-auto disabled:opacity-60">
+          <button id="btnAbsen" onclick="doAbsen()" class="btn-primary text-white px-20 py-16 rounded-3xl text-3xl font-bold shadow-2xl flex flex-col items-center gap-6 mx-auto">
             <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
@@ -333,16 +333,11 @@ function toggleMobileMenu() {
 
 async function apiCall(action, params = {}, method = 'GET') {
   let url = `${API_URL}?action=${action}`;
-  if (method === 'GET' && Object.keys(params).length > 0) {
-    Object.keys(params).forEach(key => {
-      url += `&${key}=${encodeURIComponent(params[key])}`;
-    });
+  if (method === 'GET' && Object.keys(params).length) {
+    Object.keys(params).forEach(key => url += `&${key}=${encodeURIComponent(params[key])}`);
   }
 
-  const options = {
-    method,
-    redirect: 'follow'
-  };
+  const options = { method };
 
   if (method === 'POST') {
     options.headers = { 'Content-Type': 'application/json' };
@@ -351,11 +346,17 @@ async function apiCall(action, params = {}, method = 'GET') {
 
   try {
     const response = await fetch(url, options);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return await response.json();
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.error('Response not JSON:', text);
+      showToast('Error server response', 'error');
+      return { success: false };
+    }
   } catch (error) {
-    console.error('API Call Error:', error);
-    showToast('Gagal terhubung ke server. Periksa koneksi atau URL Apps Script.', 'error');
+    console.error('Fetch error:', error);
+    showToast('Tidak dapat terhubung ke server. Periksa internet atau URL Apps Script.', 'error');
     return { success: false };
   }
 }
@@ -376,15 +377,16 @@ async function login() {
 
   const result = await apiCall('login', { username, password }, 'POST');
 
-  if (result.success) {
+  btn.disabled = false;
+  btn.innerHTML = 'Masuk Sekarang';
+
+  if (result && result.success) {
     currentUser = result;
     localStorage.setItem('absensiUser', JSON.stringify(currentUser));
     showToast(`Selamat datang, ${currentUser.nama}!`, 'success');
     initApp();
   } else {
-    msg.textContent = result.message || 'Username atau password salah!';
-    btn.disabled = false;
-    btn.innerHTML = 'Masuk Sekarang';
+    msg.textContent = result?.message || 'Username atau password salah!';
   }
 }
 
@@ -397,7 +399,7 @@ function logout() {
 }
 
 function showPage(page) {
-  document.querySelectorAll('#mainApp > div section').forEach(sec => sec.classList.add('hidden'));
+  document.querySelectorAll('#mainApp main > div').forEach(el => el.classList.add('hidden'));
   document.getElementById(page).classList.remove('hidden');
 
   document.querySelectorAll('#sidebar button[id^="nav-"]').forEach(btn => btn.classList.remove('sidebar-active'));
@@ -446,7 +448,7 @@ async function doAbsen() {
     await loadRekap();
     await loadChart();
   } else {
-    showToast(result.message || 'Gagal absen', 'error');
+    showToast(result.message || 'Sudah absen hari ini!', 'error');
     btn.disabled = false;
   }
 }
@@ -569,7 +571,9 @@ function initApp() {
   loadChart();
 }
 
-if (currentUser) initApp();
+if (currentUser) {
+  initApp();
+}
 </script>
 
 </body>
