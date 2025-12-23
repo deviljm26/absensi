@@ -4,120 +4,195 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aplikasi Absensi Guru</title>
+
+  <!-- Google Font: Inter (modern & clean) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js via CDN -->
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Heroicons v2 via CDN (fix link yang benar) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/heroicons/2.0.18/heroicons.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            primary: '#6366f1', // Indigo-500
+            primaryDark: '#4f46e5',
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    .heroicon { width: 1.5rem; height: 1.5rem; }
+    body {
+      background: linear-gradient(135deg, #eef2ff 0%, #c7d2fe 100%);
+      min-height: 100vh;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .btn-primary {
+      background: linear-gradient(to right, #6366f1, #8b5cf6);
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+    }
+    .sidebar-active {
+      background: linear-gradient(to right, #6366f1, #8b5cf6);
+    }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="font-sans text-gray-800">
 
   <!-- Login Page -->
-  <div id="loginPage" class="flex items-center justify-center min-h-screen">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md mx-4">
-      <h2 class="text-2xl font-bold text-center mb-8 flex items-center justify-center gap-3">
-        <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/lock-closed.svg#lock-closed"></use></svg>
-        Login Absensi Guru
-      </h2>
-      <input id="username" type="text" placeholder="Username" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-      <input id="password" type="password" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500">
-      <button onclick="login()" class="w-full bg-blue-600 text-white py-3 rounded-lg flex items-center justify-center gap-3 hover:bg-blue-700 transition">
-        <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/arrow-right.svg#arrow-right"></use></svg>
+  <div id="loginPage" class="flex items-center justify-center min-h-screen px-4">
+    <div class="card max-w-md w-full p-10 rounded-3xl shadow-2xl">
+      <div class="text-center mb-10">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full mb-6">
+          <svg class="w-12 h-12 text-white"><use href="#hero-lock-closed"/></svg>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-800">Absensi Guru</h2>
+        <p class="text-gray-600 mt-2">Silakan login untuk melanjutkan</p>
+      </div>
+
+      <input id="username" type="text" placeholder="Username" class="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-300 mb-5 text-lg">
+      <input id="password" type="password" placeholder="Password" class="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-300 mb-8 text-lg">
+
+      <button onclick="login()" class="w-full btn-primary text-white py-4 rounded-xl text-xl font-semibold flex items-center justify-center gap-3 shadow-lg">
+        <svg class="w-7 h-7"><use href="#hero-arrow-right"/></svg>
         Masuk
       </button>
-      <p id="loginMsg" class="text-red-500 text-center mt-4 font-medium"></p>
+
+      <p id="loginMsg" class="text-red-600 text-center mt-6 font-medium"></p>
     </div>
   </div>
 
   <!-- Main App -->
-  <div id="mainApp" class="hidden">
-    <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center sticky top-0 z-10">
-      <h1 class="text-2xl font-bold text-gray-800">Absensi Guru</h1>
+  <div id="mainApp" class="hidden min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="bg-white/90 backdrop-blur-lg shadow-lg px-6 py-5 flex justify-between items-center sticky top-0 z-50 border-b border-gray-200">
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+        Absensi Guru
+      </h1>
       <div class="flex items-center gap-6">
-        <span id="userName" class="text-lg font-medium"></span>
-        <button onclick="logout()" class="bg-red-600 text-white px-5 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition">
-          <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/arrow-left-on-rectangle.svg#arrow-left-on-rectangle"></use></svg>
+        <span id="userName" class="text-lg font-semibold text-gray-700"></span>
+        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl flex items-center gap-3 transition shadow-md">
+          <svg class="w-6 h-6"><use href="#hero-arrow-left-on-rectangle"/></svg>
           Logout
         </button>
       </div>
     </nav>
 
-    <div class="flex flex-col md:flex-row">
-      <aside class="w-full md:w-64 bg-gray-800 min-h-screen p-4">
-        <ul class="space-y-3">
+    <div class="flex flex-col lg:flex-row">
+      <!-- Sidebar -->
+      <aside class="w-full lg:w-80 bg-gradient-to-b from-indigo-700 to-purple-800 text-white p-8">
+        <ul class="space-y-4">
           <li id="menuDashboard" class="hidden">
-            <button onclick="showPage('dashboard')" class="w-full text-left text-white py-3 px-4 rounded-lg hover:bg-gray-700 flex items-center gap-3 transition">
-              <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/home.svg#home"></use></svg>
+            <button onclick="showPage('dashboard')" class="w-full text-left py-4 px-6 rounded-xl hover:bg-white/10 flex items-center gap-4 text-lg font-medium transition">
+              <svg class="w-8 h-8"><use href="#hero-home"/></svg>
               Dashboard
             </button>
           </li>
           <li>
-            <button onclick="showPage('absensi')" class="w-full text-left text-white py-3 px-4 rounded-lg hover:bg-gray-700 flex items-center gap-3 transition">
-              <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/check-circle.svg#check-circle"></use></svg>
+            <button onclick="showPage('absensi')" class="w-full text-left py-4 px-6 rounded-xl hover:bg-white/10 flex items-center gap-4 text-lg font-medium transition sidebar-active">
+              <svg class="w-8 h-8"><use href="#hero-check-circle"/></svg>
               Absensi
             </button>
           </li>
           <li>
-            <button onclick="showPage('rekap')" class="w-full text-left text-white py-3 px-4 rounded-lg hover:bg-gray-700 flex items-center gap-3 transition">
-              <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/chart-bar.svg#chart-bar"></use></svg>
+            <button onclick="showPage('rekap')" class="w-full text-left py-4 px-6 rounded-xl hover:bg-white/10 flex items-center gap-4 text-lg font-medium transition">
+              <svg class="w-8 h-8"><use href="#hero-chart-bar"/></svg>
               Rekap & Grafik
             </button>
           </li>
           <li id="menuManager" class="hidden">
-            <button onclick="showPage('manager')" class="w-full text-left text-white py-3 px-4 rounded-lg hover:bg-gray-700 flex items-center gap-3 transition">
-              <svg class="heroicon"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/users.svg#users"></use></svg>
+            <button onclick="showPage('manager')" class="w-full text-left py-4 px-6 rounded-xl hover:bg-white/10 flex items-center gap-4 text-lg font-medium transition">
+              <svg class="w-8 h-8"><use href="#hero-users"/></svg>
               Data Manager
             </button>
           </li>
         </ul>
       </aside>
 
-      <main class="flex-1 p-6 md:p-10">
-        <!-- Dashboard, Absensi, Manager sama seperti sebelumnya -->
+      <!-- Content -->
+      <main class="flex-1 p-8 lg:p-12">
 
-        <!-- Absensi (update pesan double absen) -->
-        <div id="absensi" class="hidden">
-          <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
-            <svg class="heroicon w-10 h-10 text-green-600"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/check-circle.svg#check-circle"></use></svg>
-            Absensi Hari Ini
+        <!-- Dashboard -->
+        <div id="dashboard" class="hidden">
+          <h2 class="text-4xl font-bold mb-10 flex items-center gap-4 text-gray-800">
+            <svg class="w-12 h-12 text-indigo-600"><use href="#hero-home"/></svg>
+            Dashboard Admin
           </h2>
-          <div class="bg-white p-8 rounded-xl shadow-lg">
-            <p class="text-xl mb-6">Tanggal: <span id="todayDate" class="font-bold"></span></p>
-            <button id="btnAbsen" onclick="doAbsen()" class="bg-green-600 text-white px-8 py-5 rounded-xl text-2xl flex items-center gap-4 hover:bg-green-700 transition shadow-md">
-              <svg class="heroicon w-10 h-10"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/hand-thumb-up.svg#hand-thumb-up"></use></svg>
-              Absen Sekarang
-            </button>
-            <p id="absenMsg" class="mt-6 text-xl font-bold"></p>
-
-            <div class="mt-12 border-t pt-8">
-              <h3 class="text-2xl font-bold mb-4">Rekap Bulan Ini (26 bln lalu - 25 hari ini)</h3>
-              <p class="text-xl">Total Kehadiran: <span id="totalBulan" class="font-bold text-blue-600">0</span> hari</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div class="card p-10 rounded-3xl text-center">
+              <p class="text-xl text-gray-600 mb-4">Hadir Hari Ini</p>
+              <p id="hariIni" class="text-6xl font-bold text-indigo-600">0</p>
+            </div>
+            <div class="card p-10 rounded-3xl text-center">
+              <p class="text-xl text-gray-600 mb-4">Total Bulan Ini</p>
+              <p id="bulanIni" class="text-6xl font-bold text-purple-600">0</p>
             </div>
           </div>
         </div>
 
-        <!-- Rekap dengan Grafik -->
+        <!-- Absensi -->
+        <div id="absensi" class="">
+          <h2 class="text-4xl font-bold mb-10 flex items-center gap-4 text-gray-800">
+            <svg class="w-12 h-12 text-green-600"><use href="#hero-check-circle"/></svg>
+            Absensi Hari Ini
+          </h2>
+          <div class="card p-10 rounded-3xl shadow-xl">
+            <p class="text-2xl mb-8">Tanggal: <span id="todayDate" class="font-bold text-indigo-600"></span></p>
+
+            <button id="btnAbsen" onclick="doAbsen()" class="btn-primary text-white px-12 py-8 rounded-2xl text-3xl font-bold flex items-center gap-6 shadow-2xl mx-auto">
+              <svg class="w-16 h-16"><use href="#hero-hand-thumb-up"/></svg>
+              Absen Sekarang
+            </button>
+
+            <p id="absenMsg" class="text-center text-2xl font-bold mt-10"></p>
+
+            <div class="mt-16 pt-10 border-t border-gray-300">
+              <h3 class="text-3xl font-bold mb-6 text-center">Rekap Bulan Ini</h3>
+              <p class="text-2xl text-center">Total Kehadiran: <span id="totalBulan" class="font-bold text-indigo-600">0</span> hari</p>
+              <p class="text-center text-gray-600 mt-2 text-lg">(Periode: 26 bulan lalu — 25 hari ini)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rekap & Grafik -->
         <div id="rekap" class="hidden">
-          <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
-            <svg class="heroicon w-10 h-10 text-purple-600"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/chart-bar.svg#chart-bar"></use></svg>
+          <h2 class="text-4xl font-bold mb-10 flex items-center gap-4 text-gray-800">
+            <svg class="w-12 h-12 text-purple-600"><use href="#hero-chart-bar"/></svg>
             Rekap & Grafik Kehadiran
           </h2>
 
-          <!-- Grafik -->
-          <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
-            <canvas id="attendanceChart" height="100"></canvas>
+          <div class="card p-8 rounded-3xl shadow-xl mb-10">
+            <canvas id="attendanceChart" class="max-w-5xl mx-auto"></canvas>
           </div>
 
-          <!-- Tabel -->
-          <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div class="card rounded-3xl shadow-xl overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full">
-                <thead class="bg-gray-200">
+                <thead class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
                   <tr>
-                    <th class="p-4 text-left">Tanggal</th>
-                    <th class="p-4 text-left">Nama Guru</th>
-                    <th class="p-4 text-left">Waktu Absen</th>
+                    <th class="p-6 text-left">Tanggal</th>
+                    <th class="p-6 text-left">Nama Guru</th>
+                    <th class="p-6 text-left">Waktu Absen</th>
                   </tr>
                 </thead>
                 <tbody id="rekapTable" class="divide-y divide-gray-200"></tbody>
@@ -126,22 +201,22 @@
           </div>
         </div>
 
-        <!-- Data Manager (password aman) -->
+        <!-- Data Manager -->
         <div id="manager" class="hidden">
-          <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
-            <svg class="heroicon w-10 h-10 text-indigo-600"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/users.svg#users"></use></svg>
+          <h2 class="text-4xl font-bold mb-10 flex items-center gap-4 text-gray-800">
+            <svg class="w-12 h-12 text-indigo-600"><use href="#hero-users"/></svg>
             Data Manager
           </h2>
-          <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div class="card rounded-3xl shadow-xl overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full">
-                <thead class="bg-gray-200">
+                <thead class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
                   <tr>
-                    <th class="p-4 text-left">Nama</th>
-                    <th class="p-4 text-left">Username</th>
-                    <th class="p-4 text-left">Password Baru (kosongkan = tidak ubah)</th>
-                    <th class="p-4 text-left">Role</th>
-                    <th class="p-4 text-left">Aksi</th>
+                    <th class="p-6 text-left">Nama</th>
+                    <th class="p-6 text-left">Username</th>
+                    <th class="p-6 text-left">Password Baru</th>
+                    <th class="p-6 text-left">Role</th>
+                    <th class="p-6 text-left">Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="userTable"></tbody>
@@ -150,20 +225,49 @@
           </div>
         </div>
 
-        <!-- Dashboard sama seperti sebelumnya (tidak ditampilkan ulang untuk hemat space) -->
       </main>
     </div>
   </div>
 
+  <!-- Heroicons SVG Symbols (diperlukan untuk <use>) -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
+    <symbol id="hero-lock-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+    </symbol>
+    <symbol id="hero-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+    </symbol>
+    <symbol id="hero-arrow-left-on-rectangle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4 12h16"/>
+    </symbol>
+    <symbol id="hero-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+    </symbol>
+    <symbol id="hero-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </symbol>
+    <symbol id="hero-chart-bar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+    </symbol>
+    <symbol id="hero-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+    </symbol>
+    <symbol id="hero-hand-thumb-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+    </symbol>
+  </svg>
+
 <script>
 // GANTI DENGAN URL WEB APP ANDA!
-const API_URL = 'https://script.google.com/macros/s/AKfycbx01WEQHO7bIt0bU0Km3IyJ50ZDw5VaAJoJEic7Yg95WS9vpkPxUIYPbVEdD0nSFqxqEQ/exec'; // <<-- UBAH INI
+const API_URL = 'https://script.google.com/macros/s/AKfycbx01WEQHO7bIt0bU0Km3IyJ50ZDw5VaAJoJEic7Yg95WS9vpkPxUIYPbVEdD0nSFqxqEQ/exec';
 
 let currentUser = JSON.parse(localStorage.getItem('absensiUser')) || null;
 let chartInstance = null;
 
 function formatDate(date) {
-  return date.toISOString().split('T')[0];
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString('id-ID', options);
 }
 
 function getMonthRange() {
@@ -172,7 +276,7 @@ function getMonthRange() {
   const month = today.getMonth();
   const start = new Date(year, month - 1, 26);
   const end = new Date(year, month, 25);
-  return { start: formatDate(start), end: formatDate(end) };
+  return { start: start.toISOString().split('T')[0], end: end.toISOString().split('T')[0] };
 }
 
 async function apiCall(action, params = {}, method = 'GET') {
@@ -189,33 +293,81 @@ async function apiCall(action, params = {}, method = 'GET') {
   return await res.json();
 }
 
-async function login() { /* sama seperti sebelumnya */ }
+async function login() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  if (!username || !password) {
+    document.getElementById('loginMsg').textContent = 'Isi username dan password!';
+    return;
+  }
+  const result = await apiCall('login', { username, password });
+  if (result.success) {
+    currentUser = result;
+    localStorage.setItem('absensiUser', JSON.stringify(currentUser));
+    initApp();
+  } else {
+    document.getElementById('loginMsg').textContent = 'Username atau password salah!';
+  }
+}
 
-function logout() { /* sama */ }
+function logout() {
+  localStorage.removeItem('absensiUser');
+  currentUser = null;
+  location.reload();
+}
 
-function initApp() { /* sama, tambah loadChart() di akhir */ 
-  // ... kode init sebelumnya
+function initApp() {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+  document.getElementById('userName').textContent = currentUser.nama;
+
+  if (currentUser.role === 'admin') {
+    document.getElementById('menuDashboard').classList.remove('hidden');
+    document.getElementById('menuManager').classList.remove('hidden');
+    showPage('dashboard');
+    loadDashboard();
+  } else {
+    showPage('absensi');
+  }
+
+  document.getElementById('todayDate').textContent = formatDate(new Date());
+  loadAbsensi();
+  loadRekap();
   loadChart();
+  if (currentUser.role === 'admin') loadUsers();
+}
+
+function showPage(page) {
+  document.querySelectorAll('main > div').forEach(el => el.classList.add('hidden'));
+  document.getElementById(page).classList.remove('hidden');
+
+  // Update active sidebar
+  document.querySelectorAll('aside button').forEach(btn => btn.classList.remove('sidebar-active'));
+  if (page === 'dashboard') document.querySelector('#menuDashboard button').classList.add('sidebar-active');
+  if (page === 'absensi') document.querySelectorAll('aside button')[currentUser.role === 'admin' ? 1 : 0].classList.add('sidebar-active');
+  if (page === 'rekap') document.querySelectorAll('aside button')[currentUser.role === 'admin' ? 2 : 1].classList.add('sidebar-active');
+  if (page === 'manager') document.querySelector('#menuManager button').classList.add('sidebar-active');
 }
 
 async function doAbsen() {
   const btn = document.getElementById('btnAbsen');
+  const originalHTML = btn.innerHTML;
   btn.disabled = true;
-  btn.textContent = 'Memproses...';
+  btn.innerHTML = '<span class="animate-pulse">Memproses...</span>';
 
-  const today = formatDate(new Date());
+  const today = new Date().toISOString().split('T')[0];
   const result = await apiCall('absen', { nama: currentUser.nama, tanggal: today }, 'POST');
 
   if (result.success) {
     document.getElementById('absenMsg').textContent = result.message || 'Absen berhasil!';
-    document.getElementById('absenMsg').className = 'mt-6 text-green-600 text-xl font-bold';
+    document.getElementById('absenMsg').className = 'text-green-600';
   } else {
     document.getElementById('absenMsg').textContent = result.message || 'Gagal absen';
-    document.getElementById('absenMsg').className = 'mt-6 text-red-600 text-xl font-bold';
+    document.getElementById('absenMsg').className = 'text-red-600';
   }
 
   btn.disabled = false;
-  btn.innerHTML = `<svg class="heroicon w-10 h-10"><use href="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/hand-thumb-up.svg#hand-thumb-up"></use></svg> Absen Sekarang`;
+  btn.innerHTML = originalHTML;
 
   loadAbsensi();
   loadRekap();
@@ -223,11 +375,53 @@ async function doAbsen() {
   if (currentUser.role === 'admin') loadDashboard();
 }
 
+async function loadAbsensi() {
+  const data = await apiCall('getAbsensiUser', { nama: currentUser.nama });
+  const range = getMonthRange();
+  let count = 0;
+  data.forEach(row => {
+    if (row.tanggal >= range.start && row.tanggal <= range.end) count++;
+  });
+  document.getElementById('totalBulan').textContent = count;
+}
+
+async function loadRekap() {
+  const data = await apiCall('getAllAbsensi');
+  const tbody = document.getElementById('rekapTable');
+  tbody.innerHTML = '';
+  data.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-indigo-50 transition';
+    tr.innerHTML = `
+      <td class="p-6">${row.tanggal}</td>
+      <td class="p-6 font-medium">${row.nama}</td>
+      <td class="p-6 text-gray-600">${row.waktu}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function loadDashboard() {
+  const data = await apiCall('getAllAbsensi');
+  const today = new Date().toISOString().split('T')[0];
+  const range = getMonthRange();
+
+  const uniqueToday = new Set();
+  const uniqueMonth = new Set();
+
+  data.forEach(row => {
+    if (row.tanggal === today) uniqueToday.add(row.nama);
+    if (row.tanggal >= range.start && row.tanggal <= range.end) uniqueMonth.add(row.nama);
+  });
+
+  document.getElementById('hariIni').textContent = uniqueToday.size;
+  document.getElementById('bulanIni').textContent = uniqueMonth.size;
+}
+
 async function loadChart() {
   const data = await apiCall('getAllAbsensi');
   const range = getMonthRange();
-  
-  // Hitung kehadiran per hari dalam periode bulan
+
   const dailyCount = {};
   data.forEach(row => {
     if (row.tanggal >= range.start && row.tanggal <= range.end) {
@@ -238,9 +432,10 @@ async function loadChart() {
   const labels = [];
   const counts = [];
   let current = new Date(range.start);
-  while (current <= new Date(range.end)) {
-    const dateStr = formatDate(current);
-    labels.push(dateStr);
+  const endDate = new Date(range.end);
+  while (current <= endDate) {
+    const dateStr = current.toISOString().split('T')[0];
+    labels.push(new Date(dateStr).getDate());
     counts.push(dailyCount[dateStr] || 0);
     current.setDate(current.getDate() + 1);
   }
@@ -255,13 +450,17 @@ async function loadChart() {
       datasets: [{
         label: 'Jumlah Guru Hadir',
         data: counts,
-        backgroundColor: 'rgba(59, 130, 246, 0.7)',
-        borderColor: 'rgb(59, 130, 246)',
-        borderWidth: 1
+        backgroundColor: 'rgba(99, 102, 241, 0.7)',
+        borderColor: '#6366f1',
+        borderWidth: 2,
+        borderRadius: 8,
       }]
     },
     options: {
       responsive: true,
+      plugins: {
+        legend: { display: false }
+      },
       scales: {
         y: { beginAtZero: true, ticks: { stepSize: 1 } }
       }
@@ -269,10 +468,66 @@ async function loadChart() {
   });
 }
 
-// Fungsi lain (loadAbsensi, loadRekap, loadDashboard, loadUsers, saveUser) tetap sama seperti versi sebelumnya
+async function loadUsers() {
+  const data = await apiCall('getAllUsers');
+  const tbody = document.getElementById('userTable');
+  tbody.innerHTML = '';
+  data.forEach(user => {
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-indigo-50';
+    tr.innerHTML = `
+      <td class="p-6"><input value="${user.nama}" class="w-full px-4 py-3 border rounded-xl"></td>
+      <td class="p-6"><input value="${user.username}" class="w-full px-4 py-3 border rounded-xl"></td>
+      <td class="p-6"><input type="password" placeholder="Kosongkan jika tidak ubah" class="w-full px-4 py-3 border rounded-xl"></td>
+      <td class="p-6">
+        <select class="w-full px-4 py-3 border rounded-xl">
+          <option value="admin" ${user.role==='admin'?'selected':''}>admin</option>
+          <option value="guru" ${user.role==='guru'?'selected':''}>guru</option>
+        </select>
+      </td>
+      <td class="p-6">
+        <button onclick="saveUser(${user.row}, this)" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl flex items-center gap-2 hover:shadow-lg transition">
+          <svg class="w-6 h-6"><use href="#hero-check"/></svg>
+          Simpan
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
+async function saveUser(row, button) {
+  const tr = button.closest('tr');
+  const nama = tr.querySelector('input:nth-child(1)').value.trim();
+  const username = tr.querySelector('input:nth-child(2)').value.trim();
+  const password = tr.querySelector('input[type=password]').value;
+  const role = tr.querySelector('select').value;
+
+  if (!nama || !username) {
+    alert('Nama dan username wajib diisi!');
+    return;
+  }
+
+  const result = await apiCall('updateUser', { row, nama, username, password, role }, 'POST');
+  if (result.success) {
+    alert('Data berhasil disimpan!');
+  } else {
+    alert('Gagal menyimpan data');
+  }
+}
+
+// Tambahkan symbol check untuk button simpan
+document.querySelector('svg[style="display:none;"]').innerHTML += `
+  <symbol id="hero-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+  </symbol>
+`;
+
+// Init
 if (currentUser) {
   initApp();
+} else {
+  document.getElementById('todayDate').textContent = formatDate(new Date());
 }
 </script>
 
