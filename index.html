@@ -34,9 +34,9 @@
       min-height: 100vh;
     }
     .glass-card {
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.4);
       border-radius: 1.5rem;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
     }
@@ -44,14 +44,9 @@
       background: linear-gradient(to right, #6366f1, #8b5cf6);
       transition: all 0.3s ease;
     }
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-3px);
-      box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
-    }
-    .btn-primary:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(99, 102, 241, 0.3);
     }
     .sidebar-active {
       background: linear-gradient(to right, #6366f1, #8b5cf6);
@@ -74,24 +69,50 @@
       display: flex;
       align-items: center;
       gap: 1rem;
-      animation: slideIn 0.5s ease forwards;
-      transform: translateX(120%);
+      animation: slideIn 0.4s ease forwards;
+      transform: translateX(100%);
     }
     .toast.success { background: #10b981; color: white; }
     .toast.error { background: #ef4444; color: white; }
     @keyframes slideIn {
       to { transform: translateX(0); }
     }
-    @media (max-width: 640px) {
-      #toast-container { top: auto; bottom: 1rem; left: 1rem; right: 1rem; }
-      .toast { min-width: auto; }
+    .mobile-menu {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 50;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    .mobile-menu.open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .mobile-sidebar {
+      width: 280px;
+      height: 100%;
+      background: white;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+    .mobile-sidebar.open {
+      transform: translateX(0);
     }
   </style>
 </head>
 <body class="text-slate-800">
 
-  <!-- Toast Container -->
+  <!-- Toast -->
   <div id="toast-container"></div>
+
+  <!-- Mobile Menu Overlay -->
+  <div id="mobileMenu" class="mobile-menu" onclick="closeMobileMenu()">
+    <div class="mobile-sidebar open" onclick="event.stopPropagation()">
+      <!-- Sidebar content akan di-duplicate via JS -->
+    </div>
+  </div>
 
   <!-- Login Page -->
   <div id="loginPage" class="min-h-screen flex items-center justify-center p-6">
@@ -124,7 +145,7 @@
           </div>
         </div>
 
-        <button onclick="login()" id="btnLogin" class="w-full btn-primary text-white font-bold py-4 rounded-xl shadow-xl flex items-center justify-center gap-3 text-lg">
+        <button onclick="login()" class="w-full btn-primary text-white font-bold py-4 rounded-xl shadow-xl flex items-center justify-center gap-3 text-lg">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l4-4m0 0l-4-4m4 4H3m18 0h-4"/>
           </svg>
@@ -137,159 +158,138 @@
   </div>
 
   <!-- Main App -->
-  <div id="mainApp" class="hidden min-h-screen flex flex-col lg:flex-row">
-    <!-- Navbar Mobile -->
-    <div class="lg:hidden bg-white shadow-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-      <h1 class="text-xl font-bold text-primary">EduPresence</h1>
-      <button onclick="toggleMobileMenu()" class="text-primary">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path id="hamburger-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-      </button>
-    </div>
-
-    <!-- Sidebar -->
-    <aside id="sidebar" class="w-full lg:w-72 bg-white border-r border-slate-200 flex flex-col">
-      <div class="hidden lg:block p-6 border-b border-slate-100">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-          </div>
-          <span class="text-xl font-bold text-primary">EduPresence</span>
-        </div>
+  <div id="mainApp" class="hidden min-h-screen">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-lg px-6 py-4 flex justify-between items-center sticky top-0 z-40">
+      <div class="flex items-center gap-4">
+        <button onclick="openMobileMenu()" class="lg:hidden text-primary">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-primary to-primaryDark bg-clip-text text-transparent">EduPresence</h1>
       </div>
-      <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
-        <button onclick="showPage('dashboard')" id="nav-dashboard" class="w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 font-medium text-slate-700 hover:bg-indigo-50 transition hidden">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-          </svg>
-          Dashboard Admin
-        </button>
-        <button onclick="showPage('absensi')" id="nav-absensi" class="w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 font-medium sidebar-active">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-          </svg>
-          Halaman Absen
-        </button>
-        <button onclick="showPage('rekap')" id="nav-rekap" class="w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 font-medium text-slate-700 hover:bg-indigo-50 transition">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10"/>
-          </svg>
-          Riwayat & Grafik
-        </button>
-        <button onclick="showPage('manager')" id="nav-manager" class="w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 font-medium text-slate-700 hover:bg-indigo-50 transition hidden">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-          </svg>
-          Manajemen User
-        </button>
-      </nav>
-      <div class="p-6 border-t border-slate-200">
-        <div class="bg-slate-50 rounded-2xl p-4 mb-4">
-          <p class="text-xs font-bold text-slate-400 uppercase mb-1">User Aktif</p>
-          <p id="userName" class="font-bold text-slate-800"></p>
-          <p id="userRole" class="text-xs text-slate-500 mt-1"></p>
-        </div>
-        <button onclick="logout()" class="w-full text-red-600 hover:bg-red-50 font-medium py-3 rounded-xl flex items-center justify-center gap-2 transition">
+      <div class="flex items-center gap-6">
+        <span id="userName" class="font-semibold hidden lg:block"></span>
+        <button onclick="logout()" class="text-red-600 hover:text-red-700 font-medium flex items-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
           </svg>
-          Keluar
+          Logout
         </button>
       </div>
-    </aside>
+    </nav>
 
-    <!-- Main Content -->
-    <main class="flex-1 p-6 lg:p-10 overflow-y-auto">
-      <!-- Dashboard -->
-      <div id="dashboard" class="hidden">
-        <h2 class="text-3xl font-bold mb-8">Ringkasan Kehadiran</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div class="glass-card p-8">
-            <p class="text-slate-600 mb-4 text-lg">Hadir Hari Ini</p>
-            <p id="hariIni" class="text-5xl font-black text-primary">0</p>
-          </div>
-          <div class="glass-card p-8">
-            <p class="text-slate-600 mb-4 text-lg">Total Bulan Ini</p>
-            <p id="bulanIni" class="text-5xl font-black text-primary">0</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Absensi -->
-      <div id="absensi">
-        <div class="text-center mb-12">
-          <h2 class="text-4xl font-bold text-slate-800">Presensi Harian</h2>
-          <p id="todayDate" class="text-2xl text-primary font-semibold mt-3"></p>
-          <p id="currentTime" class="text-slate-500 mt-2"></p>
-        </div>
-        <div class="glass-card max-w-3xl mx-auto p-12 text-center">
-          <button id="btnAbsen" onclick="doAbsen()" class="btn-primary text-white px-20 py-16 rounded-3xl text-3xl font-bold shadow-2xl flex flex-col items-center gap-6 mx-auto">
-            <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    <div class="flex">
+      <!-- Desktop Sidebar -->
+      <aside id="desktopSidebar" class="hidden lg:block w-72 bg-white border-r border-slate-200 min-h-screen p-6">
+        <nav class="space-y-2">
+          <button onclick="showPage('dashboard')" id="nav-dashboard" class="w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 font-medium text-slate-700 hover:bg-indigo-50 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
             </svg>
-            <span id="btnAbsenText">KLIK ABSEN</span>
+            Dashboard Admin
           </button>
-          <p id="absenMsg" class="mt-10 text-xl font-medium"></p>
+          <button onclick="showPage('absensi')" id="nav-absensi" class="w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 font-medium sidebar-active">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            Halaman Absen
+          </button>
+          <button onclick="showPage('rekap')" id="nav-rekap" class="w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 font-medium text-slate-700 hover:bg-indigo-50 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10"/>
+            </svg>
+            Riwayat & Grafik
+          </button>
+          <button onclick="showPage('manager')" id="nav-manager" class="w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 font-medium text-slate-700 hover:bg-indigo-50 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+            Manajemen User
+          </button>
+        </nav>
+      </aside>
 
-          <div class="mt-12 pt-10 border-t border-slate-200">
-            <p class="text-slate-600 mb-3">Total Kehadiran Bulan Ini</p>
-            <p class="text-5xl font-black text-primary"><span id="totalBulan">0</span> Hari</p>
-            <p class="text-slate-500 mt-3 text-sm">(Periode: 26 bulan lalu — 25 hari ini)</p>
+      <!-- Content -->
+      <main class="flex-1 p-6 lg:p-10">
+        <!-- Dashboard -->
+        <div id="dashboard" class="hidden">
+          <h2 class="text-3xl font-bold mb-8">Ringkasan Kehadiran</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="glass-card p-8">
+              <p class="text-slate-600 mb-4 text-lg">Hadir Hari Ini</p>
+              <p id="hariIni" class="text-5xl font-black text-primary">0</p>
+            </div>
+            <div class="glass-card p-8">
+              <p class="text-slate-600 mb-4 text-lg">Total Bulan Ini</p>
+              <p id="bulanIni" class="text-5xl font-black text-primary">0</p>
+            </div>
           </div>
+        </div>
 
-          <div id="statusAbsenHariIni" class="hidden mt-8 p-6 bg-green-50 rounded-2xl border border-green-200">
-            <div class="flex items-center gap-4 justify-center">
-              <svg class="w-10 h-10 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        <!-- Absensi -->
+        <div id="absensi">
+          <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-slate-800">Presensi Harian</h2>
+            <p id="todayDate" class="text-2xl text-primary font-semibold mt-3"></p>
+          </div>
+          <div class="glass-card max-w-2xl mx-auto p-12 text-center">
+            <button id="btnAbsen" onclick="doAbsen()" class="btn-primary text-white px-16 py-12 rounded-3xl text-2xl font-bold shadow-2xl flex flex-col items-center gap-4 mx-auto">
+              <svg class="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
               </svg>
-              <div class="text-left">
-                <p class="font-bold text-green-800">Sudah Absen Hari Ini</p>
-                <p class="text-green-700">Pukul <span id="waktuAbsenHariIni"></span></p>
+              Absen Sekarang
+            </button>
+            <p id="absenMsg" class="mt-10 text-xl font-medium"></p>
+
+            <div class="mt-12 pt-10 border-t border-slate-200">
+              <p class="text-slate-600 mb-3">Total Kehadiran Bulan Ini</p>
+              <p class="text-5xl font-black text-primary"><span id="totalBulan">0</span> Hari</p>
+              <p class="text-slate-500 mt-3 text-sm">(Periode: 26 bulan lalu — 25 hari ini)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rekap -->
+        <div id="rekap" class="hidden">
+          <h2 class="text-3xl font-bold mb-8">Riwayat & Grafik Kehadiran</h2>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 glass-card p-8">
+              <h3 class="font-bold text-xl mb-6">Grafik Harian (Bulan Ini)</h3>
+              <canvas id="attendanceChart" height="300"></canvas>
+            </div>
+            <div class="glass-card p-6">
+              <h3 class="font-bold text-xl mb-6">Absen Terbaru</h3>
+              <div class="space-y-4 max-h-96 overflow-y-auto">
+                <table class="w-full text-sm" id="rekapTable"></table>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Rekap -->
-      <div id="rekap" class="hidden">
-        <h2 class="text-3xl font-bold mb-8">Riwayat & Grafik</h2>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div class="lg:col-span-2 glass-card p-8">
-            <h3 class="font-bold text-xl mb-6">Grafik 7 Hari Terakhir</h3>
-            <canvas id="attendanceChart" height="300"></canvas>
-          </div>
-          <div class="glass-card p-6">
-            <h3 class="font-bold text-xl mb-6">Absen Terbaru</h3>
-            <div class="space-y-3 max-h-96 overflow-y-auto">
-              <table class="w-full text-sm" id="rekapTable"></table>
+        <!-- Manager -->
+        <div id="manager" class="hidden">
+          <h2 class="text-3xl font-bold mb-8">Manajemen Pengguna</h2>
+          <div class="glass-card overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-slate-50">
+                  <tr>
+                    <th class="p-6 text-left font-semibold">Nama Lengkap</th>
+                    <th class="p-6 text-left font-semibold">Username</th>
+                    <th class="p-6 text-left font-semibold">Password Baru</th>
+                    <th class="p-6 text-left font-semibold">Role</th>
+                    <th class="p-6 text-center font-semibold">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="userTable" class="divide-y divide-slate-100"></tbody>
+              </table>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Manager -->
-      <div id="manager" class="hidden">
-        <h2 class="text-3xl font-bold mb-8">Manajemen Pengguna</h2>
-        <div class="glass-card overflow-x-auto">
-          <table class="w-full min-w-[700px]">
-            <thead class="bg-slate-50">
-              <tr>
-                <th class="p-6 text-left font-semibold">Nama</th>
-                <th class="p-6 text-left font-semibold">Username</th>
-                <th class="p-6 text-left font-semibold">Password Baru</th>
-                <th class="p-6 text-left font-semibold">Role</th>
-                <th class="p-6 text-center font-semibold">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="userTable"></tbody>
-          </table>
-        </div>
-      </div>
-    </main>
+      </main>
+    </div>
   </div>
 
 <script>
@@ -298,165 +298,108 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbx01WEQHO7bIt0bU0Km3IyJ
 
 let currentUser = JSON.parse(localStorage.getItem('absensiUser')) || null;
 let chartInstance = null;
-let clockInterval = null;
 
-function showToast(message, type = 'success') {
+function showToast(msg, type = 'success') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.innerHTML = `
-    <svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${type === 'success' ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12'}"/>
     </svg>
-    <span class="font-semibold text-lg">${message}</span>
+    <span class="font-semibold">${msg}</span>
   `;
   container.appendChild(toast);
-  setTimeout(() => toast.remove(), 5000);
+  setTimeout(() => toast.remove(), 4000);
 }
 
 function togglePassword() {
-  const input = document.getElementById('password');
+  const pass = document.getElementById('password');
   const icon = document.getElementById('eye-icon');
-  if (input.type === 'password') {
-    input.type = 'text';
+  if (pass.type === 'password') {
+    pass.type = 'text';
     icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.952-3.055M6.118 6.118L3 9m3.118-3.118L9 3m5.882 15.882L21 21m-3.118-3.118L15 21m-5.882-2.118A3 3 0 119 12a3 3 0 013.882 5.882"/>';
   } else {
-    input.type = 'password';
+    pass.type = 'password';
     icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
   }
 }
 
-function toggleMobileMenu() {
-  const sidebar = document.getElementById('sidebar');
-  sidebar.classList.toggle('hidden');
+function openMobileMenu() {
+  document.getElementById('mobileMenu').classList.add('open');
+  const mobileSidebar = document.querySelector('.mobile-sidebar');
+  mobileSidebar.innerHTML = document.getElementById('desktopSidebar').innerHTML;
 }
 
-async function apiCall(action, params = {}, method = 'GET') {
-  let url = `${API_URL}?action=${action}`;
-  if (method === 'GET' && Object.keys(params).length) {
-    Object.keys(params).forEach(key => url += `&${key}=${encodeURIComponent(params[key])}`);
-  }
-
-  const options = { method };
-
-  if (method === 'POST') {
-    options.headers = { 'Content-Type': 'application/json' };
-    options.body = JSON.stringify({ action, ...params });
-  }
-
-  try {
-    const response = await fetch(url, options);
-    const text = await response.text();
-    try {
-      return JSON.parse(text);
-    } catch (e) {
-      console.error('Response not JSON:', text);
-      showToast('Error server response', 'error');
-      return { success: false };
-    }
-  } catch (error) {
-    console.error('Fetch error:', error);
-    showToast('Tidak dapat terhubung ke server. Periksa internet atau URL Apps Script.', 'error');
-    return { success: false };
-  }
+function closeMobileMenu() {
+  document.getElementById('mobileMenu').classList.remove('open');
 }
+
+// Duplicate sidebar for mobile
+window.addEventListener('resize', () => {
+  if (window.innerWidth >= 1024) closeMobileMenu();
+});
 
 async function login() {
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
-  const btn = document.getElementById('btnLogin');
-  const msg = document.getElementById('loginMsg');
-
   if (!username || !password) {
-    msg.textContent = 'Username dan password wajib diisi!';
+    document.getElementById('loginMsg').textContent = 'Username dan password wajib diisi!';
     return;
   }
-
-  btn.disabled = true;
-  btn.innerHTML = 'Memproses...';
-
-  const result = await apiCall('login', { username, password }, 'POST');
-
-  btn.disabled = false;
-  btn.innerHTML = 'Masuk Sekarang';
-
-  if (result && result.success) {
+  const result = await apiCall('login', { username, password });
+  if (result.success) {
     currentUser = result;
     localStorage.setItem('absensiUser', JSON.stringify(currentUser));
-    showToast(`Selamat datang, ${currentUser.nama}!`, 'success');
     initApp();
   } else {
-    msg.textContent = result?.message || 'Username atau password salah!';
+    document.getElementById('loginMsg').textContent = 'Username atau password salah!';
   }
 }
 
 function logout() {
-  if (confirm('Yakin ingin keluar?')) {
-    localStorage.removeItem('absensiUser');
-    currentUser = null;
-    location.reload();
-  }
+  localStorage.removeItem('absensiUser');
+  currentUser = null;
+  location.reload();
 }
 
 function showPage(page) {
-  document.querySelectorAll('#mainApp main > div').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('main > div').forEach(el => el.classList.add('hidden'));
   document.getElementById(page).classList.remove('hidden');
 
-  document.querySelectorAll('#sidebar button[id^="nav-"]').forEach(btn => btn.classList.remove('sidebar-active'));
-  const activeBtn = document.getElementById(`nav-${page}`);
-  if (activeBtn) activeBtn.classList.add('sidebar-active');
-}
-
-async function checkTodayAttendance() {
-  const data = await apiCall('getAbsensiUser', { nama: currentUser.nama });
-  const today = new Date().toISOString().split('T')[0];
-  const todayRecord = data.find(r => r.tanggal === today);
-
-  const btn = document.getElementById('btnAbsen');
-  const text = document.getElementById('btnAbsenText');
-  const status = document.getElementById('statusAbsenHariIni');
-  const waktu = document.getElementById('waktuAbsenHariIni');
-  const msg = document.getElementById('absenMsg');
-
-  if (todayRecord) {
-    btn.disabled = true;
-    text.textContent = 'SUDAH ABSEN';
-    status.classList.remove('hidden');
-    waktu.textContent = todayRecord.waktu || 'N/A';
-    msg.textContent = 'Terima kasih! Absensi Anda sudah tercatat hari ini.';
-    msg.className = 'mt-10 text-xl font-medium text-green-600';
-  } else {
-    btn.disabled = false;
-    text.textContent = 'KLIK ABSEN';
-    status.classList.add('hidden');
-    msg.textContent = '';
-  }
+  // Update active state
+  document.querySelectorAll('#desktopSidebar button, .mobile-sidebar button').forEach(btn => {
+    btn.classList.remove('sidebar-active');
+  });
+  document.querySelectorAll(`#nav-${page}`).forEach(btn => {
+    btn.classList.add('sidebar-active');
+  });
 }
 
 async function doAbsen() {
   const btn = document.getElementById('btnAbsen');
   btn.disabled = true;
   const today = new Date().toISOString().split('T')[0];
-
   const result = await apiCall('absen', { nama: currentUser.nama, tanggal: today }, 'POST');
-
   if (result.success) {
-    showToast('Absen berhasil tercatat!', 'success');
-    await checkTodayAttendance();
-    await loadAbsensi();
-    if (currentUser.role === 'admin') await loadDashboard();
-    await loadRekap();
-    await loadChart();
+    showToast('Absen berhasil!', 'success');
   } else {
     showToast(result.message || 'Sudah absen hari ini!', 'error');
-    btn.disabled = false;
   }
+  btn.disabled = false;
+  loadAbsensi();
+  loadRekap();
+  loadChart();
+  if (currentUser.role === 'admin') loadDashboard();
 }
 
 async function loadAbsensi() {
   const data = await apiCall('getAbsensiUser', { nama: currentUser.nama });
   const range = getMonthRange();
-  const count = data.filter(r => r.tanggal >= range.start && r.tanggal <= range.end).length;
+  let count = 0;
+  data.forEach(row => {
+    if (row.tanggal >= range.start && row.tanggal <= range.end) count++;
+  });
   document.getElementById('totalBulan').textContent = count;
 }
 
@@ -466,9 +409,10 @@ async function loadRekap() {
   tbody.innerHTML = '';
   data.slice(0, 10).reverse().forEach(row => {
     const tr = document.createElement('tr');
+    tr.className = 'hover:bg-slate-50';
     tr.innerHTML = `
       <td class="p-4 font-medium">${row.nama}</td>
-      <td class="p-4 text-slate-600">${row.waktu || '-'}</td>
+      <td class="p-4 text-slate-600">${row.waktu}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -486,22 +430,45 @@ async function loadDashboard() {
 
 async function loadChart() {
   const data = await apiCall('getAllAbsensi');
-  const days = [];
-  const counts = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const str = d.toISOString().split('T')[0];
-    days.push(d.toLocaleDateString('id-ID', { weekday: 'short' }));
-    counts.push(data.filter(r => r.tanggal === str).length);
+  const range = getMonthRange();
+  const daily = {};
+  data.forEach(r => {
+    if (r.tanggal >= range.start && r.tanggal <= range.end) {
+      daily[r.tanggal] = (daily[r.tanggal] || 0) + 1;
+    }
+  });
+  const labels = [];
+  const values = [];
+  let curr = new Date(range.start);
+  const end = new Date(range.end);
+  while (curr <= end) {
+    const key = curr.toISOString().split('T')[0];
+    labels.push(curr.getDate());
+    values.push(daily[key] || 0);
+    curr.setDate(curr.getDate() + 1);
   }
 
   const ctx = document.getElementById('attendanceChart').getContext('2d');
   if (chartInstance) chartInstance.destroy();
   chartInstance = new Chart(ctx, {
     type: 'line',
-    data: { labels: days, datasets: [{ label: 'Hadir', data: counts, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.4 }] },
-    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    data: {
+      labels,
+      datasets: [{
+        label: 'Jumlah Hadir',
+        data: values,
+        borderColor: '#6366f1',
+        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#6366f1',
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+    }
   });
 }
 
@@ -513,18 +480,32 @@ async function loadUsers() {
       <td class="p-6"><input value="${u.nama}" class="w-full px-4 py-3 border rounded-lg"></td>
       <td class="p-6"><input value="${u.username}" class="w-full px-4 py-3 border rounded-lg"></td>
       <td class="p-6"><input type="password" placeholder="Kosongkan jika tidak ubah" class="w-full px-4 py-3 border rounded-lg"></td>
-      <td class="p-6"><select class="w-full px-4 py-3 border rounded-lg"><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option><option value="guru" ${u.role==='guru'?'selected':''}>Guru</option></select></td>
-      <td class="p-6 text-center"><button onclick="saveUser(${u.row}, this)" class="bg-gradient-to-r from-primary to-primaryDark text-white px-6 py-3 rounded-lg font-medium">Simpan</button></td>
+      <td class="p-6">
+        <select class="w-full px-4 py-3 border rounded-lg">
+          <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+          <option value="guru" ${u.role==='guru'?'selected':''}>Guru</option>
+        </select>
+      </td>
+      <td class="p-6 text-center">
+        <button onclick="saveUser(${u.row}, this)" class="bg-gradient-to-r from-primary to-primaryDark text-white px-6 py-3 rounded-lg font-medium shadow hover:shadow-lg">
+          Simpan
+        </button>
+      </td>
     </tr>
   `).join('');
 }
 
 async function saveUser(row, btn) {
   const tr = btn.closest('tr');
-  const [namaInp, userInp, passInp, roleSel] = tr.querySelectorAll('input, select');
-  const payload = { row, nama: namaInp.value.trim(), username: userInp.value.trim(), role: roleSel.value };
-  if (passInp.value) payload.password = passInp.value;
-
+  const inputs = tr.querySelectorAll('input');
+  const select = tr.querySelector('select');
+  const payload = {
+    row,
+    nama: inputs[0].value.trim(),
+    username: inputs[1].value.trim(),
+    password: inputs[2].value,
+    role: select.value
+  };
   btn.disabled = true;
   btn.textContent = 'Menyimpan...';
   const res = await apiCall('updateUser', payload, 'POST');
@@ -542,15 +523,24 @@ function getMonthRange() {
   return { start: start.toISOString().split('T')[0], end: end.toISOString().split('T')[0] };
 }
 
-function updateClock() {
-  document.getElementById('currentTime').textContent = new Date().toLocaleTimeString('id-ID');
+async function apiCall(action, params = {}, method = 'GET') {
+  let url = `${API_URL}?action=${action}`;
+  if (method === 'GET' && Object.keys(params).length) {
+    Object.keys(params).forEach(k => url += `&${k}=${encodeURIComponent(params[k])}`);
+  }
+  const opts = { method };
+  if (method === 'POST') {
+    opts.headers = { 'Content-Type': 'application/json' };
+    opts.body = JSON.stringify({ action, ...params });
+  }
+  const res = await fetch(url, opts);
+  return await res.json();
 }
 
 function initApp() {
   document.getElementById('loginPage').classList.add('hidden');
   document.getElementById('mainApp').classList.remove('hidden');
   document.getElementById('userName').textContent = currentUser.nama;
-  document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Guru';
   document.getElementById('todayDate').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   if (currentUser.role === 'admin') {
@@ -562,10 +552,6 @@ function initApp() {
     showPage('absensi');
   }
 
-  clockInterval = setInterval(updateClock, 1000);
-  updateClock();
-
-  checkTodayAttendance();
   loadAbsensi();
   loadRekap();
   loadChart();
