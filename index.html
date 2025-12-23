@@ -3,830 +3,574 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Absensi Guru</title>
+  <title>EduPresence - Sistem Absensi Guru</title>
 
+  <!-- Font: Plus Jakarta Sans -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-          colors: { primary: '#4f46e5', secondary: '#6366f1' }
+          fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+          colors: {
+            primary: '#6366f1',
+            primaryDark: '#4f46e5',
+          }
         }
       }
     }
   </script>
 
   <style>
-    * { box-sizing: border-box; }
-    body { background-color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
-    .glass-card { @apply bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden; }
-    .sidebar-item { @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-gray-600 hover:bg-indigo-50 hover:text-primary cursor-pointer; }
-    .sidebar-active { @apply bg-indigo-600 text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:text-white; }
-    .input-field { @apply w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:bg-white outline-none transition-all; }
-    
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #f1f1f1; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    
-    #toast-container { @apply fixed top-5 right-5 z-[100] flex flex-col gap-3; }
-    .toast { @apply flex items-center p-4 rounded-xl shadow-2xl border-l-4 min-w-[300px] max-w-[400px] bg-white animate-slide-in; }
-    @keyframes slide-in { 
-      from { transform: translateX(400px); opacity: 0; } 
-      to { transform: translateX(0); opacity: 1; } 
+    body {
+      background: linear-gradient(to bottom right, #f0f9ff, #e0e7ff);
+      min-height: 100vh;
     }
-    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-    .animate-fade-in { animation: fade-in 0.3s ease-in; }
-    
+    .glass-card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    }
+    .btn-primary {
+      background: linear-gradient(to right, #6366f1, #8b5cf6);
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
+    }
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .sidebar-active {
+      background: linear-gradient(to right, #6366f1, #8b5cf6);
+      color: white !important;
+    }
+    #toast-container {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .toast {
+      min-width: 320px;
+      padding: 1rem 1.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      animation: slideIn 0.5s ease forwards;
+      transform: translateX(120%);
+    }
+    .toast.success { background: #10b981; color: white; }
+    .toast.error { background: #ef4444; color: white; }
+    @keyframes slideIn {
+      to { transform: translateX(0); }
+    }
     @media (max-width: 640px) {
-      #toast-container { top: auto; bottom: 20px; left: 20px; right: 20px; }
-      .toast { min-width: auto; width: 100%; }
+      #toast-container { top: auto; bottom: 1rem; left: 1rem; right: 1rem; }
+      .toast { min-width: auto; }
     }
   </style>
 </head>
-<body class="text-slate-900">
+<body class="text-slate-800">
 
+  <!-- Toast Container -->
   <div id="toast-container"></div>
 
-  <!-- LOGIN PAGE -->
-  <div id="loginPage" class="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-    <div class="w-full max-w-md">
-      <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-primary text-white rounded-3xl shadow-xl shadow-indigo-200 mb-4 sm:mb-6">
-          <svg class="w-8 h-8 sm:w-10 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+  <!-- Login Page -->
+  <div id="loginPage" class="min-h-screen flex items-center justify-center p-6">
+    <div class="glass-card w-full max-w-md p-10">
+      <div class="text-center mb-10">
+        <div class="w-20 h-20 bg-gradient-to-br from-primary to-primaryDark rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+          <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+          </svg>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Sistem Absensi Guru</h1>
-        <p class="text-slate-500 mt-2 text-sm sm:text-base">Silakan masuk untuk akses presensi</p>
+        <h1 class="text-3xl font-extrabold">EduPresence</h1>
+        <p class="text-slate-500 mt-2">Sistem Absensi Guru Modern</p>
       </div>
 
-      <div class="glass-card p-6 sm:p-8 bg-white/80 backdrop-blur-xl">
-        <div class="space-y-4 sm:space-y-5">
-          <div>
-            <label class="block text-sm font-semibold mb-2 ml-1">Username</label>
-            <input id="username" type="text" class="input-field text-sm sm:text-base" placeholder="Masukkan username" autocomplete="username">
-          </div>
-          <div>
-            <label class="block text-sm font-semibold mb-2 ml-1">Password</label>
-            <div class="relative">
-              <input id="password" type="password" class="input-field text-sm sm:text-base pr-12" placeholder="••••••••" autocomplete="current-password">
-              <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary p-1">
-                <svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-              </button>
-            </div>
-          </div>
-          <button onclick="login()" id="btnLogin" class="w-full bg-primary hover:bg-indigo-700 text-white font-bold py-3 sm:py-4 rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 text-sm sm:text-base">
-            Masuk Sekarang
-          </button>
-          <p id="loginMsg" class="text-center text-xs sm:text-sm text-red-500 font-medium min-h-[20px]"></p>
+      <div class="space-y-6">
+        <div>
+          <label class="block text-sm font-semibold mb-2 text-slate-700">Username</label>
+          <input id="username" type="text" class="w-full px-5 py-4 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition" placeholder="Masukkan username">
         </div>
+        <div>
+          <label class="block text-sm font-semibold mb-2 text-slate-700">Password</label>
+          <div class="relative">
+            <input id="password" type="password" class="w-full px-5 py-4 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary pr-14 transition" placeholder="••••••••">
+            <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-primary">
+              <svg id="eye-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button onclick="login()" id="btnLogin" class="w-full btn-primary text-white font-bold py-4 rounded-xl shadow-xl flex items-center justify-center gap-3 text-lg">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l4-4m0 0l-4-4m4 4H3m18 0h-4"/>
+          </svg>
+          Masuk Sekarang
+        </button>
       </div>
+
+      <p id="loginMsg" class="text-center text-red-500 font-medium mt-6"></p>
     </div>
   </div>
 
-  <!-- MAIN APP -->
+  <!-- Main App -->
   <div id="mainApp" class="hidden min-h-screen flex flex-col lg:flex-row">
-    <!-- SIDEBAR -->
-    <aside class="w-full lg:w-72 bg-white border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col lg:sticky lg:top-0 lg:h-screen z-40">
-      <div class="p-4 sm:p-6 flex items-center justify-between lg:justify-start gap-3 border-b lg:border-b-0 border-gray-100">
+    <!-- Navbar Mobile -->
+    <div class="lg:hidden bg-white shadow-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+      <h1 class="text-xl font-bold text-primary">EduPresence</h1>
+      <button onclick="toggleMobileMenu()" class="text-primary">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path id="hamburger-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-full lg:w-72 bg-white border-r border-slate-200 flex flex-col">
+      <div class="hidden lg:block p-6 border-b border-slate-100">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
           </div>
-          <span class="text-lg sm:text-xl font-bold tracking-tight text-indigo-900">EduPresence</span>
+          <span class="text-xl font-bold text-primary">EduPresence</span>
         </div>
-        <button onclick="toggleMobileMenu()" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg">
-          <svg id="hamburger-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-        </button>
       </div>
-
-      <nav id="mobile-menu" class="hidden lg:flex flex-1 px-4 py-4 space-y-2 overflow-y-auto">
-        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-4">Menu Utama</div>
-        
-        <button onclick="showPage('dashboard')" id="btn-dashboard" class="sidebar-item w-full hidden">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"/></svg>
-          <span class="text-sm">Dashboard Admin</span>
+      <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+        <button onclick="showPage('dashboard')" id="nav-dashboard" class="w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 font-medium text-slate-700 hover:bg-indigo-50 transition hidden">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          Dashboard Admin
         </button>
-
-        <button onclick="showPage('absensi')" id="btn-absensi" class="sidebar-item w-full sidebar-active">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          <span class="text-sm">Halaman Absen</span>
+        <button onclick="showPage('absensi')" id="nav-absensi" class="w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 font-medium sidebar-active">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          Halaman Absen
         </button>
-
-        <button onclick="showPage('rekap')" id="btn-rekap" class="sidebar-item w-full">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-          <span class="text-sm">Riwayat & Grafik</span>
+        <button onclick="showPage('rekap')" id="nav-rekap" class="w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 font-medium text-slate-700 hover:bg-indigo-50 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10"/>
+          </svg>
+          Riwayat & Grafik
         </button>
-
-        <button onclick="showPage('manager')" id="btn-manager" class="sidebar-item w-full hidden">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-          <span class="text-sm">Manajemen User</span>
+        <button onclick="showPage('manager')" id="nav-manager" class="w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 font-medium text-slate-700 hover:bg-indigo-50 transition hidden">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+          Manajemen User
         </button>
       </nav>
-
-      <div class="hidden lg:block p-4 border-t border-gray-100">
-        <div class="bg-slate-50 rounded-2xl p-4 mb-3">
+      <div class="p-6 border-t border-slate-200">
+        <div class="bg-slate-50 rounded-2xl p-4 mb-4">
           <p class="text-xs font-bold text-slate-400 uppercase mb-1">User Aktif</p>
-          <p id="userName" class="font-bold text-slate-800 truncate text-sm"></p>
+          <p id="userName" class="font-bold text-slate-800"></p>
           <p id="userRole" class="text-xs text-slate-500 mt-1"></p>
         </div>
-        <button onclick="logout()" class="flex items-center gap-3 w-full px-4 py-3 text-red-500 font-semibold hover:bg-red-50 rounded-xl transition-all text-sm">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-          Keluar Sistem
+        <button onclick="logout()" class="w-full text-red-600 hover:bg-red-50 font-medium py-3 rounded-xl flex items-center justify-center gap-2 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+          Keluar
         </button>
       </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 overflow-y-auto bg-slate-50">
-      
-      <!-- DASHBOARD ADMIN -->
-      <section id="dashboard" class="hidden animate-fade-in p-4 sm:p-6 lg:p-8">
-        <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Ringkasan Kehadiran</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div class="glass-card p-4 sm:p-6 border-l-4 border-l-indigo-600">
-            <p class="text-slate-500 font-medium text-xs sm:text-sm">Hadir Hari Ini</p>
-            <div class="flex items-end gap-2 mt-2">
-              <span id="hariIni" class="text-2xl sm:text-4xl font-black text-slate-800">0</span>
-              <span class="text-slate-400 mb-1 text-xs sm:text-sm">Guru</span>
-            </div>
+    <!-- Main Content -->
+    <main class="flex-1 p-6 lg:p-10 overflow-y-auto">
+      <!-- Dashboard -->
+      <div id="dashboard" class="hidden">
+        <h2 class="text-3xl font-bold mb-8">Ringkasan Kehadiran</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="glass-card p-8">
+            <p class="text-slate-600 mb-4 text-lg">Hadir Hari Ini</p>
+            <p id="hariIni" class="text-5xl font-black text-primary">0</p>
           </div>
-          <div class="glass-card p-4 sm:p-6 border-l-4 border-l-emerald-500">
-            <p class="text-slate-500 font-medium text-xs sm:text-sm">Total Bulan Ini</p>
-            <div class="flex items-end gap-2 mt-2">
-              <span id="bulanIni" class="text-2xl sm:text-4xl font-black text-slate-800">0</span>
-              <span class="text-slate-400 mb-1 text-xs sm:text-sm">Entri</span>
-            </div>
-          </div>
-          <div class="glass-card p-4 sm:p-6 border-l-4 border-l-amber-500">
-            <p class="text-slate-500 font-medium text-xs sm:text-sm">Total Guru</p>
-            <div class="flex items-end gap-2 mt-2">
-              <span id="totalGuru" class="text-2xl sm:text-4xl font-black text-slate-800">0</span>
-              <span class="text-slate-400 mb-1 text-xs sm:text-sm">User</span>
-            </div>
-          </div>
-          <div class="glass-card p-4 sm:p-6 border-l-4 border-l-rose-500">
-            <p class="text-slate-500 font-medium text-xs sm:text-sm">Rata-rata Hadir</p>
-            <div class="flex items-end gap-2 mt-2">
-              <span id="rataHadir" class="text-2xl sm:text-4xl font-black text-slate-800">0</span>
-              <span class="text-slate-400 mb-1 text-xs sm:text-sm">%</span>
-            </div>
+          <div class="glass-card p-8">
+            <p class="text-slate-600 mb-4 text-lg">Total Bulan Ini</p>
+            <p id="bulanIni" class="text-5xl font-black text-primary">0</p>
           </div>
         </div>
-      </section>
+      </div>
 
-      <!-- HALAMAN ABSENSI -->
-      <section id="absensi" class="p-4 sm:p-6 lg:p-10">
-        <div class="max-w-4xl mx-auto">
-          <div class="text-center mb-6 sm:mb-10">
-            <h2 class="text-2xl sm:text-3xl font-bold text-slate-800">Presensi Harian</h2>
-            <p id="todayDate" class="text-indigo-600 font-semibold mt-2 text-sm sm:text-lg"></p>
-            <p id="currentTime" class="text-slate-500 mt-1 text-xs sm:text-sm"></p>
-          </div>
-
-          <div class="glass-card p-6 sm:p-10 text-center relative overflow-hidden bg-white">
-            <div class="absolute top-0 right-0 p-4 opacity-5">
-              <svg class="w-24 h-24 sm:w-32 sm:h-32" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>
-            </div>
-
-            <div class="relative z-10">
-              <button id="btnAbsen" onclick="doAbsen()" class="group relative inline-flex items-center justify-center w-36 h-36 sm:w-48 sm:h-48 bg-indigo-600 rounded-full text-white shadow-2xl shadow-indigo-200 hover:scale-105 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
-                <div class="absolute inset-0 rounded-full bg-indigo-600 animate-ping opacity-20"></div>
-                <div class="flex flex-col items-center relative z-10">
-                  <svg class="w-12 h-12 sm:w-16 sm:h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  <span class="font-bold text-sm sm:text-lg" id="btnAbsenText">KLIK ABSEN</span>
-                </div>
-              </button>
-              <p id="absenMsg" class="mt-6 sm:mt-8 text-sm sm:text-lg font-medium text-slate-600"></p>
-            </div>
-            
-            <div class="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-dashed border-slate-200">
-              <div class="flex flex-col sm:flex-row justify-around items-center gap-4">
-                <div>
-                  <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Kehadiran Periode Ini</p>
-                  <p class="text-2xl sm:text-3xl font-black text-indigo-600 mt-1"><span id="totalBulan">0</span> Hari</p>
-                </div>
-                <div class="hidden sm:block h-10 w-[1px] bg-slate-200"></div>
-                <div class="text-xs sm:text-sm text-slate-500 max-w-[250px] text-center sm:text-left">
-                  <p class="font-semibold mb-1">Periode Absensi:</p>
-                  <p>Tanggal 26 bulan lalu sampai 25 bulan ini</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Status Absensi Hari Ini -->
-          <div id="statusAbsenHariIni" class="hidden mt-6 glass-card p-4 sm:p-6 bg-green-50 border-l-4 border-green-500">
-            <div class="flex items-start gap-3">
-              <div class="flex-shrink-0">
-                <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-              </div>
-              <div class="flex-1">
-                <h3 class="font-bold text-green-800 text-sm sm:text-base">Anda Sudah Absen Hari Ini</h3>
-                <p class="text-green-700 text-xs sm:text-sm mt-1">Waktu absen: <span id="waktuAbsenHariIni" class="font-semibold"></span></p>
-              </div>
-            </div>
-          </div>
+      <!-- Absensi -->
+      <div id="absensi">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold text-slate-800">Presensi Harian</h2>
+          <p id="todayDate" class="text-2xl text-primary font-semibold mt-3"></p>
+          <p id="currentTime" class="text-slate-500 mt-2"></p>
         </div>
-      </section>
-
-      <!-- REKAP & GRAFIK -->
-      <section id="rekap" class="hidden p-4 sm:p-6 lg:p-8">
-        <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-slate-800">Analitik & Riwayat</h2>
-        
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
-          <div class="xl:col-span-2 glass-card p-4 sm:p-6">
-            <h3 class="font-bold mb-4 flex items-center gap-2 text-sm sm:text-base">
-              <span class="w-2 h-6 bg-indigo-600 rounded-full"></span>
-              Grafik Kehadiran 7 Hari Terakhir
-            </h3>
-            <div class="h-[250px] sm:h-[300px]">
-              <canvas id="attendanceChart"></canvas>
-            </div>
-          </div>
-
-          <div class="glass-card overflow-hidden">
-            <div class="p-4 border-b border-gray-100 flex justify-between items-center">
-              <h3 class="font-bold text-sm sm:text-base">Aktivitas Terbaru</h3>
-            </div>
-            <div class="overflow-y-auto max-h-[300px] sm:max-h-[400px]">
-              <table class="w-full text-xs sm:text-sm">
-                <thead class="bg-slate-50 sticky top-0">
-                  <tr>
-                    <th class="p-2 sm:p-3 text-left font-semibold">Nama</th>
-                    <th class="p-2 sm:p-3 text-left font-semibold">Waktu</th>
-                  </tr>
-                </thead>
-                <tbody id="rekapTable" class="divide-y divide-slate-50"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- MANAJEMEN USER -->
-      <section id="manager" class="hidden p-4 sm:p-6 lg:p-8">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-6">
-          <h2 class="text-xl sm:text-2xl font-bold text-slate-800">Manajemen Pengguna</h2>
-          <button onclick="addNewUser()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-semibold text-sm flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Tambah User
+        <div class="glass-card max-w-3xl mx-auto p-12 text-center">
+          <button id="btnAbsen" onclick="doAbsen()" class="btn-primary text-white px-20 py-16 rounded-3xl text-3xl font-bold shadow-2xl flex flex-col items-center gap-6 mx-auto disabled:opacity-60">
+            <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span id="btnAbsenText">KLIK ABSEN</span>
           </button>
+          <p id="absenMsg" class="mt-10 text-xl font-medium"></p>
+
+          <div class="mt-12 pt-10 border-t border-slate-200">
+            <p class="text-slate-600 mb-3">Total Kehadiran Bulan Ini</p>
+            <p class="text-5xl font-black text-primary"><span id="totalBulan">0</span> Hari</p>
+            <p class="text-slate-500 mt-3 text-sm">(Periode: 26 bulan lalu — 25 hari ini)</p>
+          </div>
+
+          <div id="statusAbsenHariIni" class="hidden mt-8 p-6 bg-green-50 rounded-2xl border border-green-200">
+            <div class="flex items-center gap-4 justify-center">
+              <svg class="w-10 h-10 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              <div class="text-left">
+                <p class="font-bold text-green-800">Sudah Absen Hari Ini</p>
+                <p class="text-green-700">Pukul <span id="waktuAbsenHariIni"></span></p>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- Rekap -->
+      <div id="rekap" class="hidden">
+        <h2 class="text-3xl font-bold mb-8">Riwayat & Grafik</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="lg:col-span-2 glass-card p-8">
+            <h3 class="font-bold text-xl mb-6">Grafik 7 Hari Terakhir</h3>
+            <canvas id="attendanceChart" height="300"></canvas>
+          </div>
+          <div class="glass-card p-6">
+            <h3 class="font-bold text-xl mb-6">Absen Terbaru</h3>
+            <div class="space-y-3 max-h-96 overflow-y-auto">
+              <table class="w-full text-sm" id="rekapTable"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Manager -->
+      <div id="manager" class="hidden">
+        <h2 class="text-3xl font-bold mb-8">Manajemen Pengguna</h2>
         <div class="glass-card overflow-x-auto">
-          <table class="w-full min-w-[640px]">
-            <thead class="bg-slate-50 border-b">
+          <table class="w-full min-w-[700px]">
+            <thead class="bg-slate-50">
               <tr>
-                <th class="p-3 sm:p-4 text-left font-semibold text-slate-600 text-xs sm:text-sm">Informasi User</th>
-                <th class="p-3 sm:p-4 text-left font-semibold text-slate-600 text-xs sm:text-sm">Keamanan</th>
-                <th class="p-3 sm:p-4 text-left font-semibold text-slate-600 text-xs sm:text-sm">Otoritas</th>
-                <th class="p-3 sm:p-4 text-center font-semibold text-slate-600 text-xs sm:text-sm">Tindakan</th>
+                <th class="p-6 text-left font-semibold">Nama</th>
+                <th class="p-6 text-left font-semibold">Username</th>
+                <th class="p-6 text-left font-semibold">Password Baru</th>
+                <th class="p-6 text-left font-semibold">Role</th>
+                <th class="p-6 text-center font-semibold">Aksi</th>
               </tr>
             </thead>
-            <tbody id="userTable" class="divide-y divide-slate-100"></tbody>
+            <tbody id="userTable"></tbody>
           </table>
         </div>
-      </section>
+      </div>
     </main>
   </div>
 
 <script>
-// KONFIGURASI API
+// GANTI DENGAN URL WEB APP ANDA!
 const API_URL = 'https://script.google.com/macros/s/AKfycbx01WEQHO7bIt0bU0Km3IyJ50ZDw5VaAJoJEic7Yg95WS9vpkPxUIYPbVEdD0nSFqxqEQ/exec';
 
 let currentUser = JSON.parse(localStorage.getItem('absensiUser')) || null;
 let chartInstance = null;
 let clockInterval = null;
 
-// UTILITY FUNCTIONS
-const formatDate = (date) => date.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-const formatTime = (date) => date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-const formatDateTime = (date) => date.toLocaleString('id-ID', { 
-  day: '2-digit', 
-  month: '2-digit', 
-  year: 'numeric',
-  hour: '2-digit', 
-  minute: '2-digit'
-});
-
-function updateClock() {
-  const now = new Date();
-  const timeEl = document.getElementById('currentTime');
-  if (timeEl) {
-    timeEl.textContent = formatTime(now);
-  }
-}
-
-function showToast(msg, type = 'success') {
+function showToast(message, type = 'success') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
-  const borderCol = type === 'success' ? 'border-emerald-500' : 'border-red-500';
-  const iconCol = type === 'success' ? 'text-emerald-500' : 'text-red-500';
-  
-  toast.className = `toast ${borderCol}`;
+  toast.className = `toast ${type}`;
   toast.innerHTML = `
-    <div class="${iconCol} mr-3 flex-shrink-0">
-      ${type === 'success' ? 
-        '<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' : 
-        '<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>'}
-    </div>
-    <div class="text-slate-700 font-semibold text-sm">${msg}</div>
+    <svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${type === 'success' ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12'}"/>
+    </svg>
+    <span class="font-semibold text-lg">${message}</span>
   `;
   container.appendChild(toast);
-  setTimeout(() => { 
-    toast.style.opacity = '0'; 
-    toast.style.transform = 'translateX(400px)';
-    setTimeout(() => toast.remove(), 500); 
-  }, 3500);
-}
-
-async function apiCall(action, params = {}, method = 'GET') {
-  let url = `${API_URL}?action=${action}`;
-  if (method === 'GET') {
-    Object.keys(params).forEach(key => url += `&${key}=${encodeURIComponent(params[key])}`);
-  }
-  const options = { method, mode: 'cors' };
-  if (method === 'POST') {
-    options.headers = { 'Content-Type': 'text/plain' };
-    options.body = JSON.stringify({ action, ...params });
-  }
-  try {
-    const res = await fetch(url, options);
-    if (!res.ok) throw new Error('Network response was not ok');
-    return await res.json();
-  } catch (e) {
-    console.error('API Error:', e);
-    showToast("Gagal terhubung ke server!", "error");
-    return { success: false, message: 'Connection error' };
-  }
-}
-
-// AUTH FUNCTIONS
-async function login() {
-  const userInp = document.getElementById('username');
-  const passInp = document.getElementById('password');
-  const btn = document.getElementById('btnLogin');
-  const msgEl = document.getElementById('loginMsg');
-  
-  if (!userInp.value.trim() || !passInp.value) {
-    msgEl.textContent = "Username dan password tidak boleh kosong!";
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span class="ml-2">Memverifikasi...</span>`;
-  msgEl.textContent = "";
-
-  const result = await apiCall('login', { 
-    username: userInp.value.trim(), 
-    password: passInp.value 
-  }, 'POST');
-  
-  if (result.success) {
-    currentUser = result;
-    localStorage.setItem('absensiUser', JSON.stringify(currentUser));
-    showToast("Login berhasil! Selamat datang " + currentUser.nama, "success");
-    setTimeout(() => initApp(), 500);
-  } else {
-    msgEl.textContent = result.message || "Username atau password salah!";
-    btn.disabled = false;
-    btn.innerHTML = "Masuk Sekarang";
-  }
-}
-
-function logout() {
-  if (confirm('Yakin ingin keluar dari sistem?')) {
-    localStorage.removeItem('absensiUser');
-    if (clockInterval) clearInterval(clockInterval);
-    location.reload();
-  }
+  setTimeout(() => toast.remove(), 5000);
 }
 
 function togglePassword() {
-  const pass = document.getElementById('password');
+  const input = document.getElementById('password');
   const icon = document.getElementById('eye-icon');
-  if (pass.type === 'password') {
-    pass.type = 'text';
-    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.952-3.055M6.118 6.118L3 9m3.118-3.118L9 3m5.882 15.882L21 21m-3.118-3.118L15 21m-5.882-2.118A3 3 0 119 12a3 3 0 013.882 5.882"/>';
   } else {
-    pass.type = 'password';
+    input.type = 'password';
     icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
   }
 }
 
 function toggleMobileMenu() {
-  const menu = document.getElementById('mobile-menu');
-  const icon = document.getElementById('hamburger-icon');
-  
-  if (menu.classList.contains('hidden')) {
-    menu.classList.remove('hidden');
-    menu.classList.add('flex');
-    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
-  } else {
-    menu.classList.add('hidden');
-    menu.classList.remove('flex');
-    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.toggle('hidden');
+}
+
+async function apiCall(action, params = {}, method = 'GET') {
+  let url = `${API_URL}?action=${action}`;
+  if (method === 'GET' && Object.keys(params).length > 0) {
+    Object.keys(params).forEach(key => {
+      url += `&${key}=${encodeURIComponent(params[key])}`;
+    });
+  }
+
+  const options = {
+    method,
+    redirect: 'follow'
+  };
+
+  if (method === 'POST') {
+    options.headers = { 'Content-Type': 'application/json' };
+    options.body = JSON.stringify({ action, ...params });
+  }
+
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error('API Call Error:', error);
+    showToast('Gagal terhubung ke server. Periksa koneksi atau URL Apps Script.', 'error');
+    return { success: false };
   }
 }
 
-// CORE APP LOGIC
-function showPage(pageId) {
-  // Hide mobile menu on mobile
-  const menu = document.getElementById('mobile-menu');
-  const icon = document.getElementById('hamburger-icon');
-  if (window.innerWidth < 1024) {
-    menu.classList.add('hidden');
-    menu.classList.remove('flex');
-    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
+async function login() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('btnLogin');
+  const msg = document.getElementById('loginMsg');
+
+  if (!username || !password) {
+    msg.textContent = 'Username dan password wajib diisi!';
+    return;
   }
 
-  ['dashboard', 'absensi', 'rekap', 'manager'].forEach(p => {
-    const page = document.getElementById(p);
-    const btn = document.getElementById(`btn-${p}`);
-    if (page) page.classList.add('hidden');
-    if (btn) btn.classList.remove('sidebar-active');
-  });
+  btn.disabled = true;
+  btn.innerHTML = 'Memproses...';
 
-  const activePage = document.getElementById(pageId);
-  const activeBtn = document.getElementById(`btn-${pageId}`);
-  if (activePage) activePage.classList.remove('hidden');
+  const result = await apiCall('login', { username, password }, 'POST');
+
+  if (result.success) {
+    currentUser = result;
+    localStorage.setItem('absensiUser', JSON.stringify(currentUser));
+    showToast(`Selamat datang, ${currentUser.nama}!`, 'success');
+    initApp();
+  } else {
+    msg.textContent = result.message || 'Username atau password salah!';
+    btn.disabled = false;
+    btn.innerHTML = 'Masuk Sekarang';
+  }
+}
+
+function logout() {
+  if (confirm('Yakin ingin keluar?')) {
+    localStorage.removeItem('absensiUser');
+    currentUser = null;
+    location.reload();
+  }
+}
+
+function showPage(page) {
+  document.querySelectorAll('#mainApp > div section').forEach(sec => sec.classList.add('hidden'));
+  document.getElementById(page).classList.remove('hidden');
+
+  document.querySelectorAll('#sidebar button[id^="nav-"]').forEach(btn => btn.classList.remove('sidebar-active'));
+  const activeBtn = document.getElementById(`nav-${page}`);
   if (activeBtn) activeBtn.classList.add('sidebar-active');
-
-  // Load data berdasarkan halaman
-  if (pageId === 'dashboard') loadDashboard();
-  if (pageId === 'rekap') {
-    loadRekap();
-    loadChart();
-  }
 }
 
 async function checkTodayAttendance() {
-  const today = new Date().toISOString().split('T')[0];
   const data = await apiCall('getAbsensiUser', { nama: currentUser.nama });
-  
+  const today = new Date().toISOString().split('T')[0];
   const todayRecord = data.find(r => r.tanggal === today);
+
   const btn = document.getElementById('btnAbsen');
-  const btnText = document.getElementById('btnAbsenText');
-  const statusDiv = document.getElementById('statusAbsenHariIni');
-  const waktuSpan = document.getElementById('waktuAbsenHariIni');
-  const msgEl = document.getElementById('absenMsg');
-  
+  const text = document.getElementById('btnAbsenText');
+  const status = document.getElementById('statusAbsenHariIni');
+  const waktu = document.getElementById('waktuAbsenHariIni');
+  const msg = document.getElementById('absenMsg');
+
   if (todayRecord) {
     btn.disabled = true;
-    btn.classList.add('bg-gray-400', 'cursor-not-allowed');
-    btn.classList.remove('bg-indigo-600', 'hover:scale-105');
-    btnText.textContent = 'SUDAH ABSEN';
-    statusDiv.classList.remove('hidden');
-    waktuSpan.textContent = todayRecord.waktu || 'N/A';
-    msgEl.textContent = 'Terima kasih! Absensi Anda sudah tercatat.';
-    msgEl.classList.add('text-green-600');
+    text.textContent = 'SUDAH ABSEN';
+    status.classList.remove('hidden');
+    waktu.textContent = todayRecord.waktu || 'N/A';
+    msg.textContent = 'Terima kasih! Absensi Anda sudah tercatat hari ini.';
+    msg.className = 'mt-10 text-xl font-medium text-green-600';
   } else {
     btn.disabled = false;
-    btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-    btn.classList.add('bg-indigo-600');
-    btnText.textContent = 'KLIK ABSEN';
-    statusDiv.classList.add('hidden');
-    msgEl.textContent = 'Silakan klik tombol di atas untuk melakukan absensi.';
-    msgEl.classList.remove('text-green-600');
+    text.textContent = 'KLIK ABSEN';
+    status.classList.add('hidden');
+    msg.textContent = '';
   }
 }
 
 async function doAbsen() {
-  if (currentUser.role !== 'guru') {
-    showToast("Hanya guru yang dapat melakukan absensi!", "error");
-    return;
-  }
-
   const btn = document.getElementById('btnAbsen');
-  const btnText = document.getElementById('btnAbsenText');
-  const originalText = btnText.textContent;
-  
   btn.disabled = true;
-  btnText.textContent = 'PROSES...';
-  
-  const now = new Date();
-  const today = now.toISOString().split('T')[0];
-  const waktu = formatDateTime(now);
+  const today = new Date().toISOString().split('T')[0];
 
-  const result = await apiCall('absen', { 
-    nama: currentUser.nama, 
-    tanggal: today,
-    waktu: waktu
-  }, 'POST');
+  const result = await apiCall('absen', { nama: currentUser.nama, tanggal: today }, 'POST');
 
   if (result.success) {
-    showToast("Absensi berhasil! Terima kasih " + currentUser.nama, "success");
+    showToast('Absen berhasil tercatat!', 'success');
     await checkTodayAttendance();
     await loadAbsensi();
-    if (currentUser.role === 'admin') {
-      await loadDashboard();
-    }
+    if (currentUser.role === 'admin') await loadDashboard();
+    await loadRekap();
+    await loadChart();
   } else {
-    showToast(result.message || "Gagal melakukan absensi!", "error");
+    showToast(result.message || 'Gagal absen', 'error');
     btn.disabled = false;
-    btnText.textContent = originalText;
   }
 }
 
-async function initApp() {
-  document.getElementById('loginPage').classList.add('hidden');
-  document.getElementById('mainApp').classList.remove('hidden');
-  document.getElementById('userName').textContent = currentUser.nama;
-  document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Guru';
-  document.getElementById('todayDate').textContent = formatDate(new Date());
-  
-  // Start clock
-  updateClock();
-  clockInterval = setInterval(updateClock, 1000);
-
-  // Show menu berdasarkan role
-  if (currentUser.role === 'admin') {
-    document.getElementById('btn-dashboard').classList.remove('hidden');
-    document.getElementById('btn-manager').classList.remove('hidden');
-    document.getElementById('mobile-menu').classList.remove('hidden');
-    document.getElementById('mobile-menu').classList.add('flex');
-    showPage('dashboard');
-  } else {
-    // Guru hanya akses absensi dan rekap
-    document.getElementById('mobile-menu').classList.remove('hidden');
-    document.getElementById('mobile-menu').classList.add('flex');
-    showPage('absensi');
-  }
-
-  await checkTodayAttendance();
-  await loadAbsensi();
-}
-
-// DATA LOADING FUNCTIONS
 async function loadAbsensi() {
   const data = await apiCall('getAbsensiUser', { nama: currentUser.nama });
-  
-  // Hitung periode 26 bulan lalu - 25 bulan ini
-  const today = new Date();
-  const currentDay = today.getDate();
-  
-  let startDate, endDate;
-  if (currentDay >= 26) {
-    // Periode berjalan: 26 bulan ini - 25 bulan depan
-    startDate = new Date(today.getFullYear(), today.getMonth(), 26);
-    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 25);
-  } else {
-    // Periode lalu: 26 bulan lalu - 25 bulan ini
-    startDate = new Date(today.getFullYear(), today.getMonth() - 1, 26);
-    endDate = new Date(today.getFullYear(), today.getMonth(), 25);
-  }
-  
-  const filtered = data.filter(r => {
-    const date = new Date(r.tanggal);
-    return date >= startDate && date <= endDate;
-  });
-  
-  document.getElementById('totalBulan').textContent = filtered.length;
+  const range = getMonthRange();
+  const count = data.filter(r => r.tanggal >= range.start && r.tanggal <= range.end).length;
+  document.getElementById('totalBulan').textContent = count;
 }
 
 async function loadRekap() {
   const data = await apiCall('getAllAbsensi');
   const tbody = document.getElementById('rekapTable');
-  
-  if (data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="2" class="p-4 text-center text-slate-400 text-sm">Belum ada data</td></tr>';
-    return;
-  }
-  
-  // Sort by waktu descending
-  data.sort((a, b) => {
-    const dateA = new Date(a.tanggal + ' ' + (a.waktu || '00:00'));
-    const dateB = new Date(b.tanggal + ' ' + (b.waktu || '00:00'));
-    return dateB - dateA;
+  tbody.innerHTML = '';
+  data.slice(0, 10).reverse().forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="p-4 font-medium">${row.nama}</td>
+      <td class="p-4 text-slate-600">${row.waktu || '-'}</td>
+    `;
+    tbody.appendChild(tr);
   });
-  
-  tbody.innerHTML = data.slice(0, 15).map(row => `
-    <tr class="hover:bg-slate-50 transition">
-      <td class="p-2 sm:p-3 font-semibold text-slate-700">${row.nama}</td>
-      <td class="p-2 sm:p-3 text-slate-500 text-xs sm:text-sm">${row.waktu || row.tanggal}</td>
-    </tr>
-  `).join('');
 }
 
 async function loadDashboard() {
-  const [absensiData, userData] = await Promise.all([
-    apiCall('getAllAbsensi'),
-    apiCall('getAllUsers')
-  ]);
-  
+  const data = await apiCall('getAllAbsensi');
   const today = new Date().toISOString().split('T')[0];
-  const countToday = absensiData.filter(r => r.tanggal === today).length;
-  
-  // Hitung bulan ini (1-31)
-  const thisMonth = new Date().getMonth();
-  const thisYear = new Date().getFullYear();
-  const countMonth = absensiData.filter(r => {
-    const d = new Date(r.tanggal);
-    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-  }).length;
-  
-  const guruCount = userData.filter(u => u.role === 'guru').length;
-  const avgAttendance = guruCount > 0 ? Math.round((countToday / guruCount) * 100) : 0;
-  
-  document.getElementById('hariIni').textContent = countToday;
-  document.getElementById('bulanIni').textContent = countMonth;
-  document.getElementById('totalGuru').textContent = guruCount;
-  document.getElementById('rataHadir').textContent = avgAttendance;
+  const range = getMonthRange();
+  const todayCount = data.filter(r => r.tanggal === today).length;
+  const monthCount = data.filter(r => r.tanggal >= range.start && r.tanggal <= range.end).length;
+  document.getElementById('hariIni').textContent = todayCount;
+  document.getElementById('bulanIni').textContent = monthCount;
 }
 
 async function loadChart() {
   const data = await apiCall('getAllAbsensi');
-  const ctx = document.getElementById('attendanceChart');
-  if (!ctx) return;
-  
-  if (chartInstance) chartInstance.destroy();
-  
-  // Get last 7 days
   const days = [];
   const counts = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
-    const dayName = d.toLocaleDateString('id-ID', { weekday: 'short' });
-    
-    days.push(dayName);
-    counts.push(data.filter(r => r.tanggal === dateStr).length);
+    const str = d.toISOString().split('T')[0];
+    days.push(d.toLocaleDateString('id-ID', { weekday: 'short' }));
+    counts.push(data.filter(r => r.tanggal === str).length);
   }
-  
+
+  const ctx = document.getElementById('attendanceChart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
   chartInstance = new Chart(ctx, {
     type: 'line',
-    data: {
-      labels: days,
-      datasets: [{
-        label: 'Jumlah Hadir',
-        data: counts,
-        borderColor: '#4f46e5',
-        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-        fill: true,
-        tension: 0.4,
-        borderWidth: 3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        pointBackgroundColor: '#4f46e5',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2
-      }]
-    },
-    options: { 
-      responsive: true, 
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true,
-          position: 'top',
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            stepSize: 1
-          }
-        }
-      }
-    }
+    data: { labels: days, datasets: [{ label: 'Hadir', data: counts, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.4 }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
   });
 }
 
 async function loadUsers() {
   const data = await apiCall('getAllUsers');
   const tbody = document.getElementById('userTable');
-  
-  if (data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">Belum ada user</td></tr>';
-    return;
-  }
-  
-  tbody.innerHTML = data.map((user) => `
-    <tr>
-      <td class="p-3 sm:p-4">
-        <input class="input-field py-2 text-xs sm:text-sm mb-2" value="${user.nama}" placeholder="Nama Lengkap">
-        <input class="input-field py-2 text-xs sm:text-sm text-gray-500" value="${user.username}" placeholder="Username">
-      </td>
-      <td class="p-3 sm:p-4">
-        <input type="password" class="input-field py-2 text-xs sm:text-sm" placeholder="Password baru (kosongkan jika tidak diubah)">
-      </td>
-      <td class="p-3 sm:p-4">
-        <select class="input-field py-2 text-xs sm:text-sm">
-          <option value="admin" ${user.role==='admin'?'selected':''}>Admin</option>
-          <option value="guru" ${user.role==='guru'?'selected':''}>Guru</option>
-        </select>
-      </td>
-      <td class="p-3 sm:p-4 text-center">
-        <button onclick="saveUser(${user.row}, this)" class="bg-indigo-600 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold shadow-md hover:bg-indigo-700 transition-all w-full sm:w-auto">
-          Simpan
-        </button>
-      </td>
+  tbody.innerHTML = data.map(u => `
+    <tr class="hover:bg-slate-50">
+      <td class="p-6"><input value="${u.nama}" class="w-full px-4 py-3 border rounded-lg"></td>
+      <td class="p-6"><input value="${u.username}" class="w-full px-4 py-3 border rounded-lg"></td>
+      <td class="p-6"><input type="password" placeholder="Kosongkan jika tidak ubah" class="w-full px-4 py-3 border rounded-lg"></td>
+      <td class="p-6"><select class="w-full px-4 py-3 border rounded-lg"><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option><option value="guru" ${u.role==='guru'?'selected':''}>Guru</option></select></td>
+      <td class="p-6 text-center"><button onclick="saveUser(${u.row}, this)" class="bg-gradient-to-r from-primary to-primaryDark text-white px-6 py-3 rounded-lg font-medium">Simpan</button></td>
     </tr>
   `).join('');
 }
 
 async function saveUser(row, btn) {
   const tr = btn.closest('tr');
-  const inputs = tr.querySelectorAll('input');
-  const select = tr.querySelector('select');
-  
-  const nama = inputs[0].value.trim();
-  const username = inputs[1].value.trim();
-  const password = inputs[2].value.trim();
-  const role = select.value;
-  
-  if (!nama || !username) {
-    showToast("Nama dan username tidak boleh kosong!", "error");
-    return;
-  }
-  
-  const payload = {
-    row: row,
-    nama: nama,
-    username: username,
-    role: role
-  };
-  
-  if (password) {
-    payload.password = password;
-  }
+  const [namaInp, userInp, passInp, roleSel] = tr.querySelectorAll('input, select');
+  const payload = { row, nama: namaInp.value.trim(), username: userInp.value.trim(), role: roleSel.value };
+  if (passInp.value) payload.password = passInp.value;
 
   btn.disabled = true;
-  btn.textContent = "Menyimpan...";
-  
+  btn.textContent = 'Menyimpan...';
   const res = await apiCall('updateUser', payload, 'POST');
-  
-  if (res.success) {
-    showToast("Data user berhasil diperbarui!", "success");
-    inputs[2].value = ''; // Clear password field
-  } else {
-    showToast(res.message || "Gagal menyimpan data!", "error");
-  }
-  
   btn.disabled = false;
-  btn.textContent = "Simpan";
+  btn.textContent = 'Simpan';
+  showToast(res.success ? 'Berhasil disimpan!' : 'Gagal menyimpan', res.success ? 'success' : 'error');
 }
 
-async function addNewUser() {
-  const nama = prompt("Masukkan nama lengkap:");
-  if (!nama || !nama.trim()) return;
-  
-  const username = prompt("Masukkan username:");
-  if (!username || !username.trim()) return;
-  
-  const password = prompt("Masukkan password:");
-  if (!password || !password.trim()) return;
-  
-  const role = confirm("Apakah user ini Admin? (OK = Admin, Cancel = Guru)") ? 'admin' : 'guru';
-  
-  const result = await apiCall('addUser', {
-    nama: nama.trim(),
-    username: username.trim(),
-    password: password,
-    role: role
-  }, 'POST');
-  
-  if (result.success) {
-    showToast("User baru berhasil ditambahkan!", "success");
+function getMonthRange() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const start = new Date(year, month - 1, 26);
+  const end = new Date(year, month, 25);
+  return { start: start.toISOString().split('T')[0], end: end.toISOString().split('T')[0] };
+}
+
+function updateClock() {
+  document.getElementById('currentTime').textContent = new Date().toLocaleTimeString('id-ID');
+}
+
+function initApp() {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+  document.getElementById('userName').textContent = currentUser.nama;
+  document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Guru';
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  if (currentUser.role === 'admin') {
+    document.querySelectorAll('#nav-dashboard, #nav-manager').forEach(el => el.classList.remove('hidden'));
+    showPage('dashboard');
+    loadDashboard();
     loadUsers();
   } else {
-    showToast(result.message || "Gagal menambahkan user!", "error");
+    showPage('absensi');
   }
+
+  clockInterval = setInterval(updateClock, 1000);
+  updateClock();
+
+  checkTodayAttendance();
+  loadAbsensi();
+  loadRekap();
+  loadChart();
 }
 
-// ENTER KEY HANDLER
-document.addEventListener('DOMContentLoaded', () => {
-  const usernameInput = document.getElementById('username');
-  const passwordInput = document.getElementById('password');
-  
-  if (usernameInput) {
-    usernameInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        passwordInput.focus();
-      }
-    });
-  }
-  
-  if (passwordInput) {
-    passwordInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        login();
-      }
-    });
-  }
-});
-
-// BOOTSTRAP
-if (currentUser) {
-  initApp();
-}
+if (currentUser) initApp();
 </script>
+
 </body>
 </html>
